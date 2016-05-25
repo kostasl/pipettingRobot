@@ -95,6 +95,8 @@ int handleSerialCmd();
 void setup() {
   Serial.begin(9600);
   Serial.print("Liquid Handler Controller Initializing\n");
+  inputString.reserve(100);
+  
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
@@ -217,6 +219,7 @@ void loop() {
   {
     stepperP.run();
   }
+////-------------------////
 
    //Handle Serial Commands
   // print the string when a newline arrives:
@@ -383,8 +386,13 @@ void handleStartStateEvents()
   
 }
 
+
+
 /*
-  Function handle serials commands 
+  Function handle serials commands - this is called when the string is completed -  
+      --serialEvent called between loop calls- once string completed then handleSerialCmd is called 
+      that can be used to change the output of an arbitrary port  using the command SOP -
+     or using SST you can set the state of the robot. 
 */
 
 int handleSerialCmd()
@@ -448,4 +456,43 @@ int handleSerialCmd()
   
   return 0;
 }
+
+
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs, so using delay inside loop can delay
+ response.  Multiple bytes of data may be available.
+ */
+void serialEvent() {
+
+
+  while (Serial.available()) {
+    
+     //If In Press Command Mode then Pass Command To SSC Sensor Library directly 
+/*     if (systemState == CMD_PRESSURE)
+     {
+       ssc.commandRequest(Serial);
+     }
+     else
+     {
+       */
+       //Store In command Buffer which is handled by handleSerialCmd function
+      // get the new byte:
+      char inChar = (char)Serial.read();
+      // add it to the inputString:
+      inputString += inChar;
+      // if the incoming character is a newline, set a flag
+      // so the main loop can do something about it:
+      if (inChar == '\n') 
+      {
+        stringComplete = true;
+      }
+ //    }
+    
+    //Make State Machine Here - With Input Codes
+  }
+ 
+}
+
 
