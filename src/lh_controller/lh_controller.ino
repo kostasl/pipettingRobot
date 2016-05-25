@@ -77,14 +77,21 @@ int stateSW_YB;
 int stateSW_ZT;
 int stateSW_PB;
 
-unsigned long stateTimeOut = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
+/// Serial COMMAND interface ///
+boolean stringComplete             = false;  // whether the string is complete
+String inputString                 = "";         // a string to hold incoming data
+unsigned long stateTimeOut         = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
+unsigned long stateReportInterval  =0; //Used to Time a frequent serial output to host. so port does not freeze
 
 
-//Function Prototypes
-int checkHoming();
-void handleStartStateEvents();
-void handleStopStateEvents();
+// Function Prototypes
+int checkHoming(); //Check homing conditions and set pos to 0 when reached
+void handleStartStateEvents(); //Handles actions linked to moving to new state
+void handleStopStateEvents(); //Checks conditions for when current state end and transits to next one
+int handleSerialCmd();
 
+
+// Called Once on startup(after reset) for initialization //
 void setup() {
   Serial.begin(9600);
   Serial.print("Liquid Handler Controller Initializing\n");
@@ -211,7 +218,17 @@ void loop() {
     stepperP.run();
   }
 
-//delay(3000);
+   //Handle Serial Commands
+  // print the string when a newline arrives:
+  if (stringComplete) {
+    
+    handleSerialCmd();
+     // clear the string:
+    inputString = "";
+    stringComplete = false;
+    }
+
+
 
 }
 
@@ -366,4 +383,69 @@ void handleStartStateEvents()
   
 }
 
+/*
+  Function handle serials commands 
+*/
+
+int handleSerialCmd()
+{
+
+  String strbuff;
+  boolean bCommandHandled = false;
+  int readPin   = 0;
+  int readState = 0;
+
+  //If CMD Starts WITH SOP - Set Output port
+    if (inputString.startsWith("SOP"))
+    {
+      Serial.print("Set Output Port State received\n");
+        //Take Port Number -Remove newline character
+       strbuff = inputString.substring(3,inputString.length()-2);
+//       Serial.print("\n");
+//       Serial.print(strbuff);
+
+       readPin = strbuff.toInt();
+       strbuff = "";
+       strbuff =  inputString.substring(inputString.length()-2,inputString.length()-1);
+       readState = strbuff.toInt();
+       
+       
+       // Set the Pin
+       pinMode(readPin, OUTPUT);          
+       digitalWrite(readPin, readState == 0? LOW:HIGH);
+
+      //Respond with Input Params
+       Serial.print("\t");
+       Serial.print(readPin,DEC);
+       Serial.print("\t");
+       Serial.print(readState,DEC);
+       
+       bCommandHandled= true;
+      }
+      
+      //SET SYSTEM STATE received
+    if (inputString.startsWith("SST"))
+    {
+       strbuff = inputString.substring(inputString.length()-2,inputString.length()-1);
+       nextState = (ENUM_LH_STATE)strbuff.toInt();
+     
+  
+       //Check if Value within range
+       if (nextState > LAST_STATE || nextState < IDLE)
+       {
+         nextState = systemState; //No Change
+       }
+       
+       bCommandHandled= true;
+     }
+  
+      if (!bCommandHandled) 
+      {
+        Serial.print("ERR_CMD\n");
+        return -1;
+      }
+
+  
+  return 0;
+}
 
