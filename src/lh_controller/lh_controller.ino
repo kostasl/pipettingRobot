@@ -192,7 +192,7 @@ void setup() {
   positions[0] = 800; //X
   positions[1] = 800;//Y
   positions[2] = 300; //Z Axis
-  positions[3] = -300; //Pipete
+  positions[3] = 300; //Pipete
 
  // steppers.moveTo(positions);
   //steppers.runSpeedToPosition(); // Blocks until all are in position
@@ -238,28 +238,17 @@ void loop() {
   checkOutOfRange();
 
 
+//  if (nextState != systemState)
+     //First Do Start Event Handling, because on these events some motor States may be set
+  
 
 
-    //First Do Start Event Handling, because on these events some motor States may be set
-   handleStartStateEvents();
-
-
-  if (nextState == systemState)
-  {
+if (nextState != systemState)
+     handleStartStateEvents();
+else
     //Add State Events Events In Following function
     handleStopStateEvents();
-  } 
-  else   //Handle command to Switch to Next state
-  {
-
-  
-    //Report State Change
-    Serial.print("New system state set:\t");
-    Serial.println(systemState,DEC);
-    //Serial.print('\n');
-    //Report INfo State on Display  
-     dispState();
-   }
+ 
 
 
 
@@ -290,9 +279,10 @@ void loop() {
   //update display Check if time to report to host
   if (stateReportInterval < millis())
   {//Report Every sec.
-    stateReportInterval = millis()+3000;
+    stateReportInterval = millis()+800;
 //    printPressureTemp();
     dispState();
+    if (systemState != HOMING || systemState != MOVING) //Display Updates Disrupt Motion
     display.display(); //Update display from Buffer
     //Serial.println("PP");
   }
@@ -515,24 +505,24 @@ void handleStartStateEvents()
       break;
 
       case HOME: //nOW sYTEM rEACHED hOME / Release SWitches    
-
-//        stepperX.runToNewPosition(50);
-//        stepperY.runToNewPosition(50);
-//        stepperZ.runToNewPosition(80);
-//        stepperP.runToNewPosition(80);
+      //For Some Reason Using the Main Loop With Move To Does not Work / Need todo a blocking call here
+       stepperX.runToNewPosition(50);
+       stepperY.runToNewPosition(50);
+       stepperZ.runToNewPosition(100);
+       stepperP.runToNewPosition(4500);
 //
 //        stepperX.stop();
 //        stepperY.stop();
 //        stepperZ.stop();
 //        stepperP.stop();
-//        stepperX.setAcceleration(10);
-//        stepperY.setAcceleration(10);
 //
-        stepperX.moveTo(50); 
-        stepperY.moveTo(50);
-        stepperZ.moveTo(100);
-        stepperP.moveTo(100);
+//        stepperX.moveTo(50); 
+//        stepperY.moveTo(50);
+//        stepperZ.moveTo(100);
+//        stepperP.moveTo(100);
 
+
+        
         systemState = HOME;
         
         stateTimeOut =  millis() + 7000; //No timeout
@@ -806,7 +796,7 @@ void dispState()
         display.setTextColor (WHITE,BLACK); // 'inverted' text
  
   
-  display.display();
+  //display.display();
 
 }
 
