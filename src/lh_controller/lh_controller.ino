@@ -37,7 +37,7 @@
 //#include <gfxfont.h>
 #include <Adafruit_SSD1306.h>
 #include <FreeMono9pt7b.h>
-
+#include <FreeSerifItalic9pt7b.h>
     
 #if (SSD1306_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
@@ -134,9 +134,12 @@ void setup() {
   //DISPLAY/
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
-  display.setFont(&FreeMono9pt7b);
+  delay(50);
+  display.setFont(&FreeSerifItalic9pt7b);
   dispWelcome();
-  delay(1000);  
+  delay(1500);
+  display.setFont(&FreeMono9pt7b);
+  
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
@@ -211,8 +214,25 @@ void loop() {
    nextState = IDLE;
   }
 
-//First Do Start Event Handling, because on these events some motor States may be set
-    handleStartStateEvents();
+  //Check if time to report to host
+  if (stateReportInterval < millis())
+  {//Report Every sec.
+    stateReportInterval = millis()+700;
+//    printPressureTemp();
+    display.display(); //Update display from Buffer
+    //Serial.println("PP");
+  }
+
+   
+// Move to a different coordinate
+//  steppers.moveTo(positions);
+//  steppers.runSpeedToPosition(); // Blocks until all are in position
+//  stepperY.moveTo(positions[1]);
+
+  checkHoming();
+  checkOutOfRange();
+
+
 
   if (nextState == systemState)
   {
@@ -231,15 +251,8 @@ void loop() {
    }
 
 
-
-   
-// Move to a different coordinate
-//  steppers.moveTo(positions);
-//  steppers.runSpeedToPosition(); // Blocks until all are in position
-//  stepperY.moveTo(positions[1]);
-
-  checkHoming();
-  checkOutOfRange();
+//First Do Start Event Handling, because on these events some motor States may be set
+ handleStartStateEvents();
 
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
@@ -301,6 +314,14 @@ int checkHoming()
         display.println("X ON");
         display.display();
       }
+    }else
+    {
+      //Clear Screen On Swithc
+        display.setCursor(0,45);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("X ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+        //display.fillRectangle()
     }
     
     
@@ -316,8 +337,14 @@ int checkHoming()
         display.setCursor(0,57);
         display.println("Y ON");
         display.display();
-      }
-      
+      } 
+    }else
+    {
+      //Clear Screen On Swithc
+        display.setCursor(0,57);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("Y ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
     }
    
 
@@ -334,6 +361,13 @@ int checkHoming()
         display.println("Z ON");
         display.display();
       }
+    }else
+    {
+      //Clear Screen On Swithc
+        display.setCursor(50,45);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("Z ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
     }
   
     if (stateSW_PB == 0)
@@ -349,10 +383,17 @@ int checkHoming()
         display.println("P ON");
         display.display();
       }
-    }  
+    }else
+    {
+      //Clear Screen On Swithc
+        display.setCursor(50,57);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("P ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+    }
+    
 //    Serial.print("crcHOme:\t");
 //    Serial.println(iret,DEC);
-
 
   return iret;
 }
@@ -491,10 +532,9 @@ void handleStartStateEvents()
 //
         stepperX.moveTo(50); 
         stepperY.moveTo(50);
-        stepperZ.moveTo(80);
-        stepperP.moveTo(-80);
-        stepperX.run();
-        stepperY.run();
+        stepperZ.moveTo(100);
+        stepperP.moveTo(100);
+
         systemState = HOME;
         
         stateTimeOut =  millis() + 7000; //No timeout
@@ -502,15 +542,15 @@ void handleStartStateEvents()
       
 
       case TEST_RUN:
-         stepperX.setAcceleration(1500); 
+        stepperX.setAcceleration(1500); 
         stepperY.setAcceleration(1500); 	
         stepperZ.setAcceleration(1500); 	
         stepperP.setAcceleration(1500);
 
-          stepperX.moveTo(positions[0]); 
-          stepperY.moveTo(positions[1]);
-          stepperZ.moveTo(positions[2]);
-          stepperP.moveTo(positions[3]);
+        stepperX.moveTo(positions[0]); 
+        stepperY.moveTo(positions[1]);
+        stepperZ.moveTo(positions[2]);
+        stepperP.moveTo(positions[3]);
 
     
           systemState = TEST_RUN;
@@ -671,11 +711,13 @@ void dispWelcome()
   // miniature bitmap display
   display.clearDisplay();
   display.stopscroll();
-  display.setTextColor(BLACK, WHITE); // 'inverted' text
+  display.setTextColor (WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
-  display.setCursor(0,0);
+  display.setCursor(0,11);
   display.println(TXT_TITLE);
   display.setTextSize(1);
+  display.setCursor(0,28);
+
   display.print(" Initializing...");
   display.display();
 
@@ -696,19 +738,23 @@ void dispState()
   switch (systemState)
     {
       case IDLE: //1
-        display.setCursor(0,10);
+        display.setCursor(0,11);
         display.println(TXT_TITLE); 
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
+        display.setCursor(0,28);
+
         display.println(" -Ready-");
        
        break;
        
       case HOME: 
-        display.setCursor(0,10);
+        display.setCursor(0,11);
         display.println(TXT_TITLE);
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
+        display.setCursor(0,28);
+
         display.println(" -Home-");
        
       break;
@@ -716,14 +762,17 @@ void dispState()
       case HOMING:
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
+        display.setCursor(0,11);
         display.println("-Homing->");
         display.startscrollright(0x00, 0x0F);
       break;
       
       case MOVING:
-        display.setCursor(0,10);
+        display.setCursor(0,11);
         display.println("Keep clear");
-        display.setTextColor( WHITE,BLACK); // 'inverted' text     
+        display.setTextColor( WHITE,BLACK); // 'inverted' text
+        display.setCursor(0,28);
+     
         display.println("-Active-");
 
         display.startscrollright(0x00, 0x0F);
@@ -739,3 +788,4 @@ void dispState()
 }
 
 /////////////////END DISPLAY CODE ////////////////
+
