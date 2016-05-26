@@ -26,6 +26,8 @@
 // revert to 'classic' fixed-space bitmap font.
 
 //Note Any imported library is copied to the local sketchbook subfolder
+////
+// 26/5/16 -Bug : I chaned something and the accelleration to Homing Has failed
 
 #include <AccelStepper.h>
 #include <MultiStepper.h>
@@ -138,6 +140,7 @@ void setup() {
   display.setFont(&FreeSerifItalic9pt7b);
   dispWelcome();
   delay(1500);
+  display.clearDisplay();
   display.setFont(&FreeMono9pt7b);
   
   // Configure each stepper
@@ -172,6 +175,16 @@ void setup() {
   stepperP.setCurrentPosition(0);
    	
   stepperP.setMaxSpeed(1000);
+  
+  
+  
+  stepperX.setAcceleration(1500); 
+  stepperY.setAcceleration(1500); 	
+  stepperZ.setAcceleration(1500); 	
+  stepperP.setAcceleration(1500);
+
+  
+  
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperP);
@@ -214,14 +227,6 @@ void loop() {
    nextState = IDLE;
   }
 
-  //Check if time to report to host
-  if (stateReportInterval < millis())
-  {//Report Every sec.
-    stateReportInterval = millis()+700;
-//    printPressureTemp();
-    display.display(); //Update display from Buffer
-    //Serial.println("PP");
-  }
 
    
 // Move to a different coordinate
@@ -234,6 +239,11 @@ void loop() {
 
 
 
+
+    //First Do Start Event Handling, because on these events some motor States may be set
+   handleStartStateEvents();
+
+
   if (nextState == systemState)
   {
     //Add State Events Events In Following function
@@ -241,7 +251,8 @@ void loop() {
   } 
   else   //Handle command to Switch to Next state
   {
-    
+
+  
     //Report State Change
     Serial.print("New system state set:\t");
     Serial.println(systemState,DEC);
@@ -251,20 +262,14 @@ void loop() {
    }
 
 
-//First Do Start Event Handling, because on these events some motor States may be set
- handleStartStateEvents();
-
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
 //  if (stateSW_XL == 1 && stateSW_XR == 1)
-    stepperX.run();
-  
+    stepperX.run();  
 //  if (stateSW_YF == 1 && stateSW_YB == 1)
     stepperY.run();
-    
 //  if (stateSW_ZT == 1)
     stepperZ.run();
-  
 //  if (stateSW_PB == 1)
     stepperP.run();
 
@@ -281,6 +286,16 @@ void loop() {
     stringComplete = false;
     }
 
+
+  //update display Check if time to report to host
+  if (stateReportInterval < millis())
+  {//Report Every sec.
+    stateReportInterval = millis()+3000;
+//    printPressureTemp();
+    dispState();
+    display.display(); //Update display from Buffer
+    //Serial.println("PP");
+  }
 
 
 }
@@ -301,6 +316,8 @@ int checkHoming()
   stateSW_YB = digitalRead(PIN_SW_YB);
   stateSW_ZT = digitalRead(PIN_SW_ZT);
   stateSW_PB = digitalRead(PIN_SW_PB);
+
+   display.setTextColor (WHITE,BLACK); // 'inverted' text
     
    if (stateSW_XR == 0){
       stepperX.setCurrentPosition(0);
@@ -316,11 +333,6 @@ int checkHoming()
       }
     }else
     {
-      //Clear Screen On Swithc
-        display.setCursor(0,45);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("X ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
         //display.fillRectangle()
     }
     
@@ -340,11 +352,7 @@ int checkHoming()
       } 
     }else
     {
-      //Clear Screen On Swithc
-        display.setCursor(0,57);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("Y ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
+ 
     }
    
 
@@ -363,11 +371,6 @@ int checkHoming()
       }
     }else
     {
-      //Clear Screen On Swithc
-        display.setCursor(50,45);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("Z ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
     }
   
     if (stateSW_PB == 0)
@@ -385,11 +388,6 @@ int checkHoming()
       }
     }else
     {
-      //Clear Screen On Swithc
-        display.setCursor(50,57);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("P ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
     }
     
 //    Serial.print("crcHOme:\t");
@@ -730,7 +728,7 @@ void dispState()
   // miniature bitmap display
   display.clearDisplay();
   display.stopscroll();
-  //display.setTextColor(BLACK, WHITE); // 'inverted' text
+  display.setTextColor( WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
   
 
@@ -782,6 +780,31 @@ void dispState()
       default:
       break;
     }
+  
+       //Clear Screen On Swithc
+        display.setCursor(0,45);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("X ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+ 
+      //Clear Screen On Swithc
+        display.setCursor(0,57);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("Y ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+ 
+      //Clear Screen On Swithc
+        display.setCursor(50,45);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("Z ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+ 
+      //Clear Screen On Swithc
+        display.setCursor(50,57);
+        display.setTextColor (BLACK,WHITE); // 'inverted' text
+        display.print("P ON");
+        display.setTextColor (WHITE,BLACK); // 'inverted' text
+ 
   
   display.display();
 
