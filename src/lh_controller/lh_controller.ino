@@ -16,37 +16,66 @@
 /// to pin 5.
 /// \param[in] enable If this is true (the default), enableOutputs() will be called to enable
 /// the output pins at construction time.
-///AccelStepper(uint8_t interface = AccelStepper::FULL4WIRE, uint8_t pin1 = 2, uint8_t pin2 = 3, uint8_t pin3 = 4, uint8_t pin4 = 5, bool enable = true);
+///AccelStepper(uint8_t interface =AccelStepper::FULL4WIRE, uint8_t pin1 = 2, uint8_t pin2 = 3, uint8_t pin3 = 4, uint8_t pin4 = 5, bool enable = true);
+
+
+// Font structures for newer Adafruit_GFX (1.1 and later).
+// Example fonts are included in 'Fonts' directory.
+// To use a font in your Arduino sketch, #include the corresponding .h
+// file and pass address of GFXfont struct to setFont().  Pass NULL to
+// revert to 'classic' fixed-space bitmap font.
+
+//Note Any imported library is copied to the local sketchbook subfolder
 
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 
+//Headers for Screen Adafruit OLED  Monochrome OLEDs based on SSD1306 drivers 
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+//#include <gfxfont.h>
+#include <Adafruit_SSD1306.h>
+#include <FreeMono9pt7b.h>
+
+    
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
+
+
+
+
 //  DEFINITIONS 
 //  PINS
-const int PIN_MOTOR_P_EN    = 2; //Pipette drive
-const int PIN_MOTOR_P_STEP  = 3;
-const int PIN_MOTOR_P_DIR   = 4;
+//
+#define TXT_TITLE          "-AutoPip-"
+#define OLED_RESET           31 //NOTE The connected OLED Does not Have A RST PIN
 
-const int PIN_MOTOR_Z_EN    = 5;
-const int PIN_MOTOR_Z_STEP  = 6;
-const int PIN_MOTOR_Z_DIR   = 7;
+#define PIN_MOTOR_P_EN    2 //Pipette drive
+#define PIN_MOTOR_P_STEP  3
+#define PIN_MOTOR_P_DIR   4
 
-const int PIN_MOTOR_Y_EN    = 8;
-const int PIN_MOTOR_Y_STEP  = 9;
-const int PIN_MOTOR_Y_DIR   = 10;
+#define PIN_MOTOR_Z_EN    5
+#define PIN_MOTOR_Z_STEP  6
+#define PIN_MOTOR_Z_DIR   7
 
-const int PIN_MOTOR_X_EN    = 11;
-const int PIN_MOTOR_X_STEP  = 12;
-const int PIN_MOTOR_X_DIR   = 13;
+#define PIN_MOTOR_Y_EN    8
+#define PIN_MOTOR_Y_STEP  9
+#define PIN_MOTOR_Y_DIR   10
+
+#define PIN_MOTOR_X_EN    11
+#define PIN_MOTOR_X_STEP  12
+#define PIN_MOTOR_X_DIR   13
 
 
 //Limit Switches - X and Y axes have on both sides
-const int PIN_SW_XL          = 52;
-const int PIN_SW_XR          = 51;
-const int PIN_SW_YF          = 50;
-const int PIN_SW_YB          = 49;
-const int PIN_SW_ZT          = 48;
-const int PIN_SW_PB          = 47;
+#define PIN_SW_XL           52
+#define PIN_SW_XR           51
+#define PIN_SW_YF           50
+#define PIN_SW_YB           49
+#define PIN_SW_ZT           48
+#define PIN_SW_PB           47
 
 
 // EG X-Y position bed driven by 2 steppers
@@ -63,6 +92,10 @@ AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); //
 
 MultiStepper steppers;
 
+///Screen Vars 
+Adafruit_SSD1306 display(OLED_RESET);
+
+
 ///STATE Variables
 enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,CMD_PRESSURE=6,HOLD_LARVA=7,LAST_STATE=8};
 
@@ -70,12 +103,12 @@ ENUM_LH_STATE systemState = LAST_STATE;
 ENUM_LH_STATE nextState = HOMING;
 
 //Limit Switches Global Variables
-int stateSW_XL;
-int stateSW_XR;
-int stateSW_YF;
-int stateSW_YB;
-int stateSW_ZT;
-int stateSW_PB;
+int stateSW_XL = 1;
+int stateSW_XR = 1;
+int stateSW_YF = 1;
+int stateSW_YB = 1;
+int stateSW_ZT = 1;
+int stateSW_PB = 1;
 
 /// Serial COMMAND interface ///
 boolean stringComplete             = false;  // whether the string is complete
@@ -90,6 +123,7 @@ void handleStartStateEvents(); //Handles actions linked to moving to new state
 void handleStopStateEvents(); //Checks conditions for when current state end and transits to next one
 int handleSerialCmd();
 
+void dispWelcome();
 
 // Called Once on startup(after reset) for initialization //
 void setup() {
@@ -97,6 +131,12 @@ void setup() {
   Serial.print("Liquid Handler Controller Initializing\n");
   inputString.reserve(100);
   
+  //DISPLAY/
+  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
+  display.setFont(&FreeMono9pt7b);
+  dispWelcome();
+  delay(1000);  
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
@@ -120,7 +160,7 @@ void setup() {
   stepperZ.setPinsInverted(true,true,true);
   stepperZ.setCurrentPosition(0);
   stepperZ.setAcceleration(1500); 	
-  stepperZ.setMaxSpeed(1000);
+  stepperZ.setMaxSpeed(2000);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperZ);
@@ -134,10 +174,10 @@ void setup() {
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperP);
 
-  positions[0] = -800;
-  positions[1] = -800;
-  positions[2] = 300;
-  positions[3] = -800;
+  positions[0] = 800; //X
+  positions[1] = 800;//Y
+  positions[2] = 300; //Z Axis
+  positions[3] = 300; //Pipete
 
  // steppers.moveTo(positions);
   //steppers.runSpeedToPosition(); // Blocks until all are in position
@@ -160,13 +200,7 @@ void setup() {
 }
 void loop() {
   
-  //delay(3000);
-  stateSW_XL = digitalRead(PIN_SW_XL);
-  stateSW_XR = digitalRead(PIN_SW_XR);
-  stateSW_YF = digitalRead(PIN_SW_YF);
-  stateSW_YB = digitalRead(PIN_SW_YB);
-  stateSW_ZT = digitalRead(PIN_SW_ZT);
-  stateSW_PB = digitalRead(PIN_SW_PB);
+
   //Serial.println(stateButton,DEC); 
   //delay(20);
   
@@ -185,13 +219,17 @@ void loop() {
   } 
   else   //Handle command to Switch to Next state
   {
-
+    
     handleStartStateEvents();
     //Report State Change
     Serial.print("New system state set:\t");
     Serial.println(systemState,DEC);
     //Serial.print('\n');
+    //Report INfo State on Display  
+     dispState();
    }
+
+
 
    
 // Move to a different coordinate
@@ -199,26 +237,21 @@ void loop() {
 //  steppers.runSpeedToPosition(); // Blocks until all are in position
 //  stepperY.moveTo(positions[1]);
 
- 
+checkHoming();
+checkOutOfRange();
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
-  if (stateSW_XL == 1 && stateSW_XR == 1)
-  {
+//  if (stateSW_XL == 1 && stateSW_XR == 1)
     stepperX.run();
-  }
   
-  if (stateSW_YF == 1 && stateSW_YB == 1)
-  {
+//  if (stateSW_YF == 1 && stateSW_YB == 1)
     stepperY.run();
-  }
     
-  if (stateSW_ZT == 1)
-  {
+//  if (stateSW_ZT == 1)
     stepperZ.run();
-  }
-  if (stateSW_PB == 1)
-  {
+  
+//  if (stateSW_PB == 1)
     stepperP.run();
-  }
+   
 ////-------------------////
 
    //Handle Serial Commands
@@ -239,37 +272,76 @@ void loop() {
 int checkHoming()
 {
   int iret = 0;
-    //Home Reached
-  if (stateSW_XR == 0)
-  {
-    stepperX.setCurrentPosition(0);
-    stepperX.moveTo(0);
-    stepperX.stop();
-    iret++;
-  }
-  if (stateSW_YB == 0)
-  {
-    stepperY.setCurrentPosition(0);
-    stepperY.moveTo(0);
-    stepperY.stop();
-    iret++;
-
-  }
-  if (stateSW_ZT == 0)
-  {
-    stepperZ.setCurrentPosition(0);
-    stepperZ.moveTo(0);
-    stepperZ.stop();
-
-    iret++;
-  }
-  if (stateSW_PB == 0)
-  {
-    stepperP.setCurrentPosition(0);
-    stepperP.moveTo(0);
-    iret++;
-  }  
+  //Save prior Read State
+  bool bXFlagged = !(stateSW_XR == 1);
+  bool bYFlagged = !(stateSW_YB == 1);
+  bool bZFlagged = !(stateSW_ZT == 1);
+  bool bPBlagged = !(stateSW_PB == 1);
   
+  //Read Switches Home Reached
+  
+  stateSW_XR = digitalRead(PIN_SW_XR);
+  stateSW_YB = digitalRead(PIN_SW_YB);
+  stateSW_ZT = digitalRead(PIN_SW_ZT);
+  stateSW_PB = digitalRead(PIN_SW_PB);
+    
+   if (stateSW_XR == 0){
+      stepperX.setCurrentPosition(0);
+      stepperX.moveTo(0);
+      stepperX.stop();
+      iret++;
+      
+      if (!bXFlagged){ //If switch just changed then Update Screen - Note Screen has a buffer
+        display.setCursor(0,20);
+        display.println("X ON");
+        display.display();
+      }
+    }
+    
+    
+    if (stateSW_YB == 0)
+    {
+      stepperY.setCurrentPosition(0); //Set As Ref Point
+      stepperY.moveTo(0);
+      stepperY.stop();
+      iret++;  
+      
+      if (!bYFlagged){ //If switch just changed then Update Screen
+        display.setCursor(0,40);
+        display.println("Y ON");
+        display.display();
+      }
+      
+    }
+   
+
+    if (stateSW_ZT == 0)
+    {
+      stepperZ.setCurrentPosition(0);
+      stepperZ.moveTo(0);
+      stepperZ.stop();
+      iret++;
+      
+      if (!bZFlagged){ //If switch just changed then Update Screen
+        display.setCursor(50,40);
+        display.println("Z ON");
+        display.display();
+      }
+    }
+  
+    if (stateSW_PB == 0)
+    {
+      stepperP.setCurrentPosition(0);
+      stepperP.moveTo(0);
+      stepperP.stop();
+      iret++;
+
+      if (!bPBlagged){ //If switch just changed then Update Screen
+        display.setCursor(50,50);
+        display.println("P ON");
+        display.display();
+      }
+    }  
 //    Serial.print("crcHOme:\t");
 //    Serial.println(iret,DEC);
 
@@ -278,6 +350,25 @@ int checkHoming()
 }
 
 
+int checkOutOfRange()
+{
+  int iret = 0;
+    //EXtreme Switches
+  stateSW_XL = digitalRead(PIN_SW_XL);
+  stateSW_YF = digitalRead(PIN_SW_YF);
+
+  if (stateSW_XL == 0)
+  {
+    stepperX.stop();
+    iret++;
+  } 
+  if (stateSW_YB == 0) {
+    stepperY.stop();
+    iret++;
+  }
+
+return iret;
+}
 
 ///////////////
 //Run from the main loop on every iteration to check and handle the conditions that may end a state
@@ -301,7 +392,7 @@ void handleStopStateEvents()
 
       case HOMING: //2
         //Check if a PUMP Move has been completed
-        if (checkHoming() >= 2) 
+        if (checkHoming() > 3) 
         {
           nextState = HOME;
         }else
@@ -312,24 +403,33 @@ void handleStopStateEvents()
       
 
       
-      case HOME: //3 //Reached Home - Stay Here
+      case HOME: //3 //Reached Home - Stay Here Unclick Switches
 
-           nextState = IDLE;
+           nextState = HOME;
       break;      
 
       
       case TEST_RUN:
           
-          
           nextState = MOVING;
       break;
 
       case MOVING:
-         if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0)
+         if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
          {
+           //Invert Positions For next Run
+          //positions[0] = positions[0]*(-1);positions
+          //positions[1] = positions[1]*(-1);
+          //positions[2] = positions[2]*(-1);
+          //positions[3] = positions[3]*(-1);
+          
+         
            nextState = TEST_RUN; //Do it again
          }
-         
+         else
+         {
+           nextState = MOVING;
+         }
       break;
       
       default: //Uknown option
@@ -339,6 +439,7 @@ void handleStopStateEvents()
 
 
 //Run When a new state has been set so the switching between states occurs
+//For State To Switch the Handling needs to Save nextState INto Current state
 void handleStartStateEvents()
 {  
     switch (nextState)
@@ -352,34 +453,42 @@ void handleStartStateEvents()
       case HOMING:
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
-        stepperZ.moveTo(-3800);
-        stepperP.moveTo(-100);
+        stepperZ.moveTo(-16000);
+        stepperP.moveTo(200);
+        
 
         stateTimeOut =  millis()+25000; //With timeout
         systemState = HOMING;
       break;
 
-      case HOME: //nOW sYTEM rEACHED hOME
+      case HOME: //nOW sYTEM rEACHED hOME / Release SWitches    
+        stepperX.moveTo(280); 
+        stepperY.moveTo(280);
+        stepperZ.moveTo(200);
+        stepperP.moveTo(-120);
         
-          systemState = HOME;
-          stateTimeOut =  0; //No timeout
+        systemState = HOME;
+        
+        stateTimeOut =  millis() + 5000; //No timeout
       break;
       
 
       case TEST_RUN:
-  
-          positions[0] = positions[0]*(-1);
+          
           stepperX.moveTo(positions[0]); 
-          positions[1] = positions[1]*(-1);
           stepperY.moveTo(positions[1]);
-          positions[2] = positions[2]*(-1);
           stepperZ.moveTo(positions[2]);
-          positions[3] = positions[3]*(-1);
           stepperP.moveTo(positions[3]);
+
     
-          systemState = MOVING;
+          systemState = TEST_RUN;
       break;
       
+      case MOVING:
+      //Nothing Here
+        systemState = MOVING;
+        ;
+      break;
       default: //Uknown option
         nextState = systemState; //Reset Next State to current
     }
@@ -494,5 +603,106 @@ void serialEvent() {
   }
  
 }
+//////////////  END SERIAL CODE //////////////////////
+
+////////////////////// DISPLAY CODE ////////////////
+
+void testscrolltext(void) {
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(10,0);
+  display.clearDisplay();
+  display.println("scroll");
+  display.display();
+
+  display.startscrollright(0x00, 0x0F);
+  delay(2000);
+  display.stopscroll();
+  delay(1000);
+  display.startscrollleft(0x00, 0x0F);
+  delay(2000);
+  display.stopscroll();
+  delay(1000);    
+  display.startscrolldiagright(0x00, 0x07);
+  delay(2000);
+  display.startscrolldiagleft(0x00, 0x07);
+  delay(2000);
+  display.stopscroll();
+}
 
 
+
+void dispWelcome()
+{
+    // Clear the buffer.
+  // miniature bitmap display
+  display.clearDisplay();
+  display.stopscroll();
+  display.setTextColor(BLACK, WHITE); // 'inverted' text
+  display.setTextSize(1);
+  display.setCursor(0,0);
+  display.println(TXT_TITLE);
+  display.setTextSize(1);
+  display.print(" Initializing...");
+  display.display();
+
+}
+
+//Show Text Relating to the Current System System STATE
+void dispState()
+{
+    // Clear the buffer.
+  // miniature bitmap display
+  display.clearDisplay();
+  display.stopscroll();
+  //display.setTextColor(BLACK, WHITE); // 'inverted' text
+  display.setTextSize(1);
+  
+
+    //State finished  
+  switch (systemState)
+    {
+      case IDLE: //1
+        display.setCursor(0,10);
+        display.println(TXT_TITLE); 
+        display.setTextColor( WHITE,BLACK); // 'inverted' text     
+        //display.setCursor(0,20);
+        display.println(" -Ready-");
+       
+       break;
+       
+      case HOME: 
+        display.setCursor(0,10);
+        display.println(TXT_TITLE);
+        display.setTextColor( WHITE,BLACK); // 'inverted' text     
+        //display.setCursor(0,20);
+        display.println(" -Home-");
+       
+      break;
+
+      case HOMING:
+        display.setTextColor( WHITE,BLACK); // 'inverted' text     
+        //display.setCursor(0,20);
+        display.println("-Homing->");
+        display.startscrollright(0x00, 0x0F);
+      break;
+      
+      case MOVING:
+        display.setCursor(0,10);
+        display.println("Keep clear");
+        display.setTextColor( WHITE,BLACK); // 'inverted' text     
+        display.println("-Active-");
+
+        display.startscrollright(0x00, 0x0F);
+      break;
+      
+      
+      default:
+      break;
+    }
+  
+  display.display();
+
+}
+
+/////////////////END DISPLAY CODE ////////////////
