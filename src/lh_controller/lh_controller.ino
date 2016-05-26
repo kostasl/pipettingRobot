@@ -140,8 +140,7 @@ void setup() {
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
-  stepperX.setCurrentPosition(0);
-  stepperX.setAcceleration(1500); 	
+  stepperX.setCurrentPosition(0);  
   stepperX.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
@@ -150,7 +149,7 @@ void setup() {
   stepperY.setEnablePin(PIN_MOTOR_Y_EN);
   stepperY.setPinsInverted(true,true,true);
   stepperY.setCurrentPosition(0);
-  stepperY.setAcceleration(1500); 	
+ 	
   stepperY.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
@@ -159,16 +158,16 @@ void setup() {
   stepperZ.setEnablePin(PIN_MOTOR_Z_EN);
   stepperZ.setPinsInverted(true,true,true);
   stepperZ.setCurrentPosition(0);
-  stepperZ.setAcceleration(1500); 	
+  
   stepperZ.setMaxSpeed(2000);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperZ);
 
   stepperP.setEnablePin(PIN_MOTOR_P_EN);
-  stepperP.setPinsInverted(true,true,true);
+  stepperP.setPinsInverted(false,true,true); //Not Inverting Direction - +ve are towards Home Switches
   stepperP.setCurrentPosition(0);
-  stepperP.setAcceleration(1500); 	
+   	
   stepperP.setMaxSpeed(1000);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
@@ -212,6 +211,9 @@ void loop() {
    nextState = IDLE;
   }
 
+//First Do Start Event Handling, because on these events some motor States may be set
+    handleStartStateEvents();
+
   if (nextState == systemState)
   {
     //Add State Events Events In Following function
@@ -220,7 +222,6 @@ void loop() {
   else   //Handle command to Switch to Next state
   {
     
-    handleStartStateEvents();
     //Report State Change
     Serial.print("New system state set:\t");
     Serial.println(systemState,DEC);
@@ -237,8 +238,10 @@ void loop() {
 //  steppers.runSpeedToPosition(); // Blocks until all are in position
 //  stepperY.moveTo(positions[1]);
 
-checkHoming();
-checkOutOfRange();
+  checkHoming();
+  checkOutOfRange();
+
+
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
 //  if (stateSW_XL == 1 && stateSW_XR == 1)
     stepperX.run();
@@ -251,6 +254,7 @@ checkOutOfRange();
   
 //  if (stateSW_PB == 1)
     stepperP.run();
+
    
 ////-------------------////
 
@@ -287,12 +291,13 @@ int checkHoming()
     
    if (stateSW_XR == 0){
       stepperX.setCurrentPosition(0);
-      stepperX.moveTo(0);
-      stepperX.stop();
+      //stepperX.moveTo(0);
+      
       iret++;
       
       if (!bXFlagged){ //If switch just changed then Update Screen - Note Screen has a buffer
-        display.setCursor(0,20);
+        stepperX.stop();
+        display.setCursor(0,45);
         display.println("X ON");
         display.display();
       }
@@ -302,12 +307,13 @@ int checkHoming()
     if (stateSW_YB == 0)
     {
       stepperY.setCurrentPosition(0); //Set As Ref Point
-      stepperY.moveTo(0);
-      stepperY.stop();
+      //stepperY.moveTo(0);
+      //
       iret++;  
       
       if (!bYFlagged){ //If switch just changed then Update Screen
-        display.setCursor(0,40);
+        stepperY.stop();
+        display.setCursor(0,57);
         display.println("Y ON");
         display.display();
       }
@@ -318,11 +324,12 @@ int checkHoming()
     if (stateSW_ZT == 0)
     {
       stepperZ.setCurrentPosition(0);
-      stepperZ.moveTo(0);
-      stepperZ.stop();
+      //stepperZ.moveTo(0);
+      //
       iret++;
       
       if (!bZFlagged){ //If switch just changed then Update Screen
+        stepperZ.stop();
         display.setCursor(50,45);
         display.println("Z ON");
         display.display();
@@ -332,11 +339,12 @@ int checkHoming()
     if (stateSW_PB == 0)
     {
       stepperP.setCurrentPosition(0);
-      stepperP.moveTo(0);
-      stepperP.stop();
+      //stepperP.moveTo(0);
+      //stepperP.stop();
       iret++;
 
       if (!bPBlagged){ //If switch just changed then Update Screen
+        stepperP.stop();
         display.setCursor(50,57);
         display.println("P ON");
         display.display();
@@ -384,10 +392,6 @@ void handleStopStateEvents()
         //stepperY.setMaxSpeed(1);
         //stepperX.setMaxSpeed(1);
         //stepperP.setMaxSpeed(1);
-        stepperX.stop();
-        stepperY.stop();
-        stepperZ.stop();
-        stepperP.stop();
       break;
 
       case HOMING: //2
@@ -410,6 +414,7 @@ void handleStopStateEvents()
 
       
       case TEST_RUN:
+ 
           
           nextState = MOVING;
       break;
@@ -445,16 +450,25 @@ void handleStartStateEvents()
     switch (nextState)
     {
       case IDLE:
-        //tipStopAll();
-        //Read Pressure Sensor - C        
+
+        stepperX.stop();
+        stepperY.stop();
+        stepperZ.stop();
+        stepperP.stop();
+
         systemState = IDLE;
       break;
       
       case HOMING:
-        stepperX.moveTo(-8000); 
-        stepperY.moveTo(-8000);
-        stepperZ.moveTo(-16000);
-        stepperP.moveTo(8000);
+        stepperX.setAcceleration(1500); 
+        stepperY.setAcceleration(1500); 	
+        stepperZ.setAcceleration(1500); 	
+        stepperP.setAcceleration(1500);
+
+        stepperX.moveTo(-5000); 
+        stepperY.moveTo(-5000);
+        stepperZ.moveTo(-12000);
+        stepperP.moveTo(-8000);
         
 
         stateTimeOut =  millis()+25000; //With timeout
@@ -462,16 +476,25 @@ void handleStartStateEvents()
       break;
 
       case HOME: //nOW sYTEM rEACHED hOME / Release SWitches    
-        stepperX.runToNewPosition(50);
-        stepperY.runToNewPosition(50);
-        stepperZ.runToNewPosition(50);
-        stepperP.runToNewPosition(-50);
+
+//        stepperX.runToNewPosition(50);
+//        stepperY.runToNewPosition(50);
+//        stepperZ.runToNewPosition(80);
+//        stepperP.runToNewPosition(80);
 //
-//        stepperX.moveTo(50); 
-//        stepperY.moveTo(50);
-//        stepperZ.moveTo(50);
-//        stepperP.moveTo(-50);
-//        
+//        stepperX.stop();
+//        stepperY.stop();
+//        stepperZ.stop();
+//        stepperP.stop();
+//        stepperX.setAcceleration(10);
+//        stepperY.setAcceleration(10);
+//
+        stepperX.moveTo(50); 
+        stepperY.moveTo(50);
+        stepperZ.moveTo(80);
+        stepperP.moveTo(-80);
+        stepperX.run();
+        stepperY.run();
         systemState = HOME;
         
         stateTimeOut =  millis() + 7000; //No timeout
@@ -479,7 +502,11 @@ void handleStartStateEvents()
       
 
       case TEST_RUN:
-          
+         stepperX.setAcceleration(1500); 
+        stepperY.setAcceleration(1500); 	
+        stepperZ.setAcceleration(1500); 	
+        stepperP.setAcceleration(1500);
+
           stepperX.moveTo(positions[0]); 
           stepperY.moveTo(positions[1]);
           stepperZ.moveTo(positions[2]);
