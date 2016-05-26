@@ -177,7 +177,7 @@ void setup() {
   positions[0] = 800; //X
   positions[1] = 800;//Y
   positions[2] = 300; //Z Axis
-  positions[3] = 300; //Pipete
+  positions[3] = -300; //Pipete
 
  // steppers.moveTo(positions);
   //steppers.runSpeedToPosition(); // Blocks until all are in position
@@ -323,7 +323,7 @@ int checkHoming()
       iret++;
       
       if (!bZFlagged){ //If switch just changed then Update Screen
-        display.setCursor(50,40);
+        display.setCursor(50,45);
         display.println("Z ON");
         display.display();
       }
@@ -337,7 +337,7 @@ int checkHoming()
       iret++;
 
       if (!bPBlagged){ //If switch just changed then Update Screen
-        display.setCursor(50,50);
+        display.setCursor(50,57);
         display.println("P ON");
         display.display();
       }
@@ -418,10 +418,10 @@ void handleStopStateEvents()
          if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
          {
            //Invert Positions For next Run
-          //positions[0] = positions[0]*(-1);positions
-          //positions[1] = positions[1]*(-1);
-          //positions[2] = positions[2]*(-1);
-          //positions[3] = positions[3]*(-1);
+          positions[0] = positions[0]*(-1);
+          positions[1] = positions[1]*(-1);
+          positions[2] = positions[2]*(-1);
+          positions[3] = positions[3]*(-1);
           
          
            nextState = TEST_RUN; //Do it again
@@ -454,7 +454,7 @@ void handleStartStateEvents()
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
         stepperZ.moveTo(-16000);
-        stepperP.moveTo(200);
+        stepperP.moveTo(8000);
         
 
         stateTimeOut =  millis()+25000; //With timeout
@@ -462,14 +462,19 @@ void handleStartStateEvents()
       break;
 
       case HOME: //nOW sYTEM rEACHED hOME / Release SWitches    
-        stepperX.moveTo(280); 
-        stepperY.moveTo(280);
-        stepperZ.moveTo(200);
-        stepperP.moveTo(-120);
-        
+        stepperX.runToNewPosition(50);
+        stepperY.runToNewPosition(50);
+        stepperZ.runToNewPosition(50);
+        stepperP.runToNewPosition(-50);
+//
+//        stepperX.moveTo(50); 
+//        stepperY.moveTo(50);
+//        stepperZ.moveTo(50);
+//        stepperP.moveTo(-50);
+//        
         systemState = HOME;
         
-        stateTimeOut =  millis() + 5000; //No timeout
+        stateTimeOut =  millis() + 7000; //No timeout
       break;
       
 
@@ -486,9 +491,10 @@ void handleStartStateEvents()
       
       case MOVING:
       //Nothing Here
-        systemState = MOVING;
-        ;
+          systemState = MOVING;
+
       break;
+
       default: //Uknown option
         nextState = systemState; //Reset Next State to current
     }
