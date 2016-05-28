@@ -269,9 +269,9 @@ else
 
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
-//if (stateSW_XL == 1 && stateSW_XR == 1)
+//if (stateSW_XL == 1)
     stepperX.run();  
-// if (stateSW_YF == 1 && stateSW_YB == 1)
+// if (stateSW_YF == 1)
     stepperY.run();
 //  if (stateSW_ZT == 1)
     stepperZ.run();
@@ -336,11 +336,13 @@ int checkHoming()
         display.setCursor(0,45);
         display.println("X ON");
         display.display();
+      }else
+      {
+       if (stepperX.targetPosition() < 1){ //Only stopMotor if next pos is pressing against switch
+           stepperX.moveTo(1);
+           stepperX.stop();
+         }
       }
-
-     if (stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
-         stepperX.moveTo(1);
-         stepperX.stop();
     }
     
     
@@ -412,29 +414,52 @@ int checkHoming()
 int checkOutOfRange()
 {
   int iret = 0;
+  bool bXFlagged = !(stateSW_XL == 1);
+  bool bYFlagged = !(stateSW_YF == 1);
+
     //EXtreme Switches
   stateSW_XL = digitalRead(PIN_SW_XL);
   stateSW_YF = digitalRead(PIN_SW_YF);
 
   if (stateSW_XL == 0)
   {
-      //Do not allow to push against the switch
-      if (stepperX.targetPosition() - stepperX.currentPosition() > -1)
+      if (!bXFlagged){ //If switch just changed then Update Screen - Note Screen has a buffer
+        stepperX.setSpeed(0);
+        display.setCursor(0,45);
+        display.println("X ON");
+        display.display();
+      }else
       {
-       stepperX.stop(); //Just in case future vers change the above
-       stepperX.moveTo(stepperX.currentPosition()-1);
+      //Do not allow to push against the switch
+        if (stepperX.targetPosition() - stepperX.currentPosition() > 0)
+        {
+         stepperX.setSpeed(0);
+         stepperX.moveTo(stepperX.currentPosition());
+         stepperX.stop(); //Just in case future vers change the above
+        }
       }
 
     iret++;
   } 
   if (stateSW_YF == 0) {
 
-      //Do not allow to push against the switch
-      if (stepperY.targetPosition() - stepperY.currentPosition() > -1)
+      if (!bYFlagged){ //If switch just changed then Update Screen
+        stepperY.setSpeed(0);//Just in case future vers change the above
+        display.setCursor(0,57);
+        display.println("Y ON");
+        display.display();
+      }else
       {
-       stepperY.stop(); //Just in case future vers change the above
-       stepperY.moveTo(stepperY.currentPosition()-1);
+
+        //Do not allow to push against the switch
+        if (stepperY.targetPosition() - stepperY.currentPosition() > 0)
+        {
+           stepperY.moveTo(stepperY.currentPosition());
+           stepperY.stop(); //Just in case future vers change the above
+        }
       }
+
+    
 
     iret++;
   }
