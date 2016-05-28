@@ -372,13 +372,13 @@ int checkHoming()
 
     if (stateSW_ZT == 0)
     {
-      stepperZ.setCurrentPosition(0);
-      //stepperZ.moveTo(0);
       //
       iret++;
       
       if (!bZFlagged){ //If switch just changed then Update Screen
+        stepperZ.setCurrentPosition(0);
         stepperZ.stop();
+        stepperZ.setSpeed(0);
         display.setCursor(50,45);
         display.println("Z ON");
         display.display();
@@ -389,12 +389,13 @@ int checkHoming()
   
     if (stateSW_PB == 0)
     {
-      stepperP.setCurrentPosition(0);
       //stepperP.moveTo(0);
       //stepperP.stop();
       iret++;
 
       if (!bPBlagged){ //If switch just changed then Update Screen
+        stepperP.setCurrentPosition(0);
+        stepperP.setSpeed(0);
         stepperP.stop();
         display.setCursor(50,57);
         display.println("P ON");
