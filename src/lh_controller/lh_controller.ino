@@ -39,7 +39,7 @@
 //#include <gfxfont.h>
 #include <Adafruit_SSD1306.h>
 #include <FreeMono9pt7b.h>
-#include <FreeSerifItalic9pt7b.h>
+//#include <FreeSerifItalic9pt7b.h>
     
 #if (SSD1306_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
@@ -70,6 +70,11 @@
 #define PIN_MOTOR_X_STEP  12
 #define PIN_MOTOR_X_DIR   13
 
+#define PIN_AJR_X         0 //Joystick R
+#define PIN_AJR_Y         1
+#define PIN_SW_JR         46 //JoyStick R PushSwitch
+
+
 
 //Limit Switches - X and Y axes have on both sides
 #define PIN_SW_XL           52
@@ -99,7 +104,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 
 ///STATE Variables
-enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,CMD_PRESSURE=6,HOLD_LARVA=7,LAST_STATE=8};
+enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,JOYSTICK=6,HOLD_LARVA=7,LAST_STATE=8};
 
 ENUM_LH_STATE systemState = LAST_STATE;
 ENUM_LH_STATE nextState = HOMING;
@@ -111,6 +116,10 @@ int stateSW_YF = 1;
 int stateSW_YB = 1;
 int stateSW_ZT = 1;
 int stateSW_PB = 1;
+int stateSW_JR = 1; //Joystick
+
+int posJRx     = 0; //Joystick Analog position X
+int posJRy     = 0; //Joystick Analog position X
 
 /// Serial COMMAND interface ///
 boolean stringComplete             = false;  // whether the string is complete
@@ -137,11 +146,12 @@ void setup() {
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
   delay(50);
-  display.setFont(&FreeSerifItalic9pt7b);
+  //display.setFont(&FreeSerifItalic9pt7b);
+  display.setFont(&FreeMono9pt7b);
+
   dispWelcome();
   delay(1500);
   display.clearDisplay();
-  display.setFont(&FreeMono9pt7b);
   
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
@@ -209,10 +219,16 @@ void setup() {
  pinMode(PIN_SW_YB,INPUT_PULLUP);
  pinMode(PIN_SW_ZT,INPUT_PULLUP);
  pinMode(PIN_SW_PB,INPUT_PULLUP);
- 
+ pinMode(PIN_SW_JR,INPUT_PULLUP); //Joystic Sw Setup
+ //digitalWrite(stateSW_JR,HIGH);
 
   //steppers.addStepper(stepper2);
 }
+
+
+
+
+
 void loop() {
   
 
@@ -236,7 +252,7 @@ void loop() {
 
   checkHoming();
   checkOutOfRange();
-
+  readJoystick();
 
 //  if (nextState != systemState)
      //First Do Start Event Handling, because on these events some motor States may be set
@@ -244,7 +260,11 @@ void loop() {
 
 
 if (nextState != systemState)
+{
      handleStartStateEvents();
+     dispState();
+     display.display();
+}
 else
     //Add State Events Events In Following function
     handleStopStateEvents();
@@ -280,7 +300,7 @@ else
   if (stateReportInterval < millis())
   {//Report Every sec.
     stateReportInterval = millis()+800;
-//    printPressureTemp();
+    Serial.println(stateSW_JR);
     dispState();
     if (systemState != HOMING || systemState != MOVING) //Display Updates Disrupt Motion
     display.display(); //Update display from Buffer
@@ -466,6 +486,14 @@ void handleStopStateEvents()
          }
       break;
       
+      case JOYSTICK:
+
+         if (stateSW_JR == 1){
+           nextState = IDLE;
+         }
+           
+      break;
+      
       default: //Uknown option
         nextState = IDLE; //Reset Next State to current
     }
@@ -485,7 +513,10 @@ void handleStartStateEvents()
         stepperZ.stop();
         stepperP.stop();
 
-        systemState = IDLE;
+         if (stateSW_JR == 1){
+           nextState = JOYSTICK;
+         }else
+          systemState = IDLE;
       break;
       
       case HOMING:
@@ -761,10 +792,25 @@ void dispState()
         display.setTextColor( WHITE,BLACK); // 'inverted' text
         display.setCursor(0,28);
      
-        display.println("-Active-");
+        display.println("-Moving-");
 
         display.startscrollright(0x00, 0x0F);
       break;
+
+      case JOYSTICK:
+        display.setCursor(0,20);
+        display.println("Joystick");
+        display.setTextColor( WHITE,BLACK); // 'inverted' text
+        display.setCursor(10,30);
+        display.println(posJRx);
+        display.setCursor(30,30);
+        display.println(posJRy);
+        display.println(stateSW_JR);
+        display.display();
+
+  
+      break;
+
       
       
       default:
@@ -801,4 +847,16 @@ void dispState()
 }
 
 /////////////////END DISPLAY CODE ////////////////
+
+
+///READ JOY Stick //
+
+void readJoystick()
+{
+  posJRx     = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
+  posJRx     = analogRead(PIN_AJR_Y)-531;
+  stateSW_JR  = digitalRead(PIN_SW_JR);
+  Serial.println(stateSW_JR);
+  
+}
 
