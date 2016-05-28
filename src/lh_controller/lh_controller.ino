@@ -301,8 +301,9 @@ else
     stateReportInterval = millis()+800;
     Serial.println(stateSW_JR);
     dispState();
-    if (systemState != HOMING || systemState != MOVING) //Display Updates Disrupt Motion
-    display.display(); //Update display from Buffer
+    //if (systemState != HOMING || systemState != MOVING || systemState != J) //Display Updates Disrupt Motion
+    if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0) //Display Updates disrupt the  Motion
+      display.display(); //Update display from Buffer
     //Serial.println("PP");
   }
 
@@ -713,29 +714,6 @@ void serialEvent() {
 //////////////  END SERIAL CODE //////////////////////
 
 ////////////////////// DISPLAY CODE ////////////////
-
-void testscrolltext(void) {
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(10,0);
-  display.clearDisplay();
-  display.println("scroll");
-  display.display();
-
-  display.startscrollright(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);
-  display.startscrollleft(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);    
-  display.startscrolldiagright(0x00, 0x07);
-  delay(2000);
-  display.startscrolldiagleft(0x00, 0x07);
-  delay(2000);
-  display.stopscroll();
-}
 
 
 
