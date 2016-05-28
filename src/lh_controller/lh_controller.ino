@@ -187,7 +187,6 @@ void setup() {
   stepperP.setMaxSpeed(1000);
   
   
-  
   stepperX.setAcceleration(1500); 
   stepperY.setAcceleration(1500); 	
   stepperZ.setAcceleration(1500); 	
@@ -441,6 +440,13 @@ void handleStopStateEvents()
         //stepperY.setMaxSpeed(1);
         //stepperX.setMaxSpeed(1);
         //stepperP.setMaxSpeed(1);
+        
+         if (stateSW_JR == 1){
+           nextState = JOYSTICK;
+           display.println("BUTTON");
+           display.display();
+         }else
+           nextState = IDLE;
       break;
 
       case HOMING: //2
@@ -487,9 +493,18 @@ void handleStopStateEvents()
       break;
       
       case JOYSTICK:
+ 
+        stepperY.setMaxSpeed(posJRy);
+        stepperX.setMaxSpeed(posJRx);
+        
+        if (abs(posJRy) > 10)
+         stepperY.move(posJRy);
 
+        if (abs(posJRx) > 10)
+         stepperX.move(posJRx);
+         
          if (stateSW_JR == 1){
-           nextState = IDLE;
+         //  nextState = IDLE;
          }
            
       break;
@@ -513,10 +528,7 @@ void handleStartStateEvents()
         stepperZ.stop();
         stepperP.stop();
 
-         if (stateSW_JR == 1){
-           nextState = JOYSTICK;
-         }else
-          systemState = IDLE;
+        systemState = IDLE;
       break;
       
       case HOMING:
@@ -578,7 +590,10 @@ void handleStartStateEvents()
       case MOVING:
       //Nothing Here
           systemState = MOVING;
+      break;
 
+      case JOYSTICK:
+          systemState = JOYSTICK;      
       break;
 
       default: //Uknown option
@@ -798,15 +813,14 @@ void dispState()
       break;
 
       case JOYSTICK:
-        display.setCursor(0,20);
+        char buff[30];
+        sprintf(buff,"%d - %d",posJRx,posJRy);
+        display.setCursor(0,11);
         display.println("Joystick");
         display.setTextColor( WHITE,BLACK); // 'inverted' text
-        display.setCursor(10,30);
-        display.println(posJRx);
-        display.setCursor(30,30);
-        display.println(posJRy);
-        display.println(stateSW_JR);
-        display.display();
+        display.setCursor(5,30);
+        display.print(buff);
+        //display.display();
 
   
       break;
@@ -853,10 +867,8 @@ void dispState()
 
 void readJoystick()
 {
-  posJRx     = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
-  posJRx     = analogRead(PIN_AJR_Y)-531;
-  stateSW_JR  = digitalRead(PIN_SW_JR);
-  Serial.println(stateSW_JR);
-  
+  posJRx       = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
+  posJRy       = analogRead(PIN_AJR_Y)-531;
+  stateSW_JR    = 1-(int)digitalRead(PIN_SW_JR);  //Invert So it Behaves like the limit SW
 }
 
