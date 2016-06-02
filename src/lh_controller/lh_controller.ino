@@ -37,11 +37,11 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 //#include <gfxfont.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SSD1325.h>
 #include <FreeMono9pt7b.h>
 //#include <FreeSerifItalic9pt7b.h>
     
-#if (SSD1306_LCDHEIGHT != 64)
+#if (SSD1325_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
@@ -52,7 +52,6 @@
 //  PINS
 //
 #define TXT_TITLE          "-AutoPip-"
-#define OLED_RESET           31 //NOTE The connected OLED Does not Have A RST PIN
 
 #define PIN_MOTOR_P_EN    2 //Pipette drive
 #define PIN_MOTOR_P_STEP  3
@@ -84,6 +83,11 @@
 #define PIN_SW_ZT           48
 #define PIN_SW_PB           47
 
+// These are neede for both hardware & softare SPI /Modified lib to give SPI_CLOCK_DIV4 
+#define OLED_CS 2
+#define OLED_RESET 3
+#define OLED_DC 48
+
 
 // EG X-Y position bed driven by 2 steppers
 // Alas its not possible to build an array of these with different pins for each :-(
@@ -99,9 +103,10 @@ AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); //
 
 MultiStepper steppers;
 
-///Screen Vars 
-Adafruit_SSD1306 display(OLED_RESET);
-
+///Screen Vars   
+//Adafruit_SSD1306 display(OLED_RESET);
+// this is for hardware SPI, fast! but fixed oubs
+Adafruit_SSD1325 display(OLED_DC, OLED_RESET, OLED_CS);
 
 ///STATE Variables
 enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,JOYSTICK=6,HOLD_LARVA=7,LAST_STATE=8};
@@ -144,7 +149,8 @@ void setup() {
   
   //DISPLAY/
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
+  //display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
+  display.begin();
   delay(50);
   //display.setFont(&FreeSerifItalic9pt7b);
   display.setFont(&FreeMono9pt7b);
@@ -769,7 +775,7 @@ void dispWelcome()
     // Clear the buffer.
   // miniature bitmap display
   display.clearDisplay();
-  display.stopscroll();
+  //display.stopscroll();
   display.setTextColor (WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
   display.setCursor(0,11);
@@ -788,7 +794,7 @@ void dispState()
     // Clear the buffer.
   // miniature bitmap display
   display.clearDisplay();
-  display.stopscroll();
+  //display.stopscroll();
   display.setTextColor( WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
   
@@ -823,7 +829,7 @@ void dispState()
         //display.setCursor(0,20);
         display.setCursor(0,11);
         display.println("-Homing->");
-        display.startscrollright(0x00, 0x0F);
+        //display.startscrollright(0x00, 0x0F);
       break;
       
       case MOVING:
@@ -834,7 +840,7 @@ void dispState()
      
         display.println("-Moving-");
 
-        display.startscrollright(0x00, 0x0F);
+        //display.startscrollright(0x00, 0x0F);
       break;
 
       case JOYSTICK:
