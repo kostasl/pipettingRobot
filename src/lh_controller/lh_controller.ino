@@ -1,34 +1,33 @@
-// MultiStepper.pde
-// -*- mode: C++ -*-
-// Use MultiStepper class to manage multiple steppers and make them all move to 
-// the same position at the same time for linear 2d (or 3d) motion.
-
-/// Defaults to AccelStepper::FULL4WIRE (4) pins.
-/// \param[in] pin1 Arduino digital pin number for motor pin 1. Defaults
-/// to pin 2. For a AccelStepper::DRIVER (interface==1), 
-/// this is the Step input to the driver. Low to high transition means to step)
-/// \param[in] pin2 Arduino digital pin number for motor pin 2. Defaults
-/// to pin 3. For a AccelStepper::DRIVER (interface==1), 
-/// this is the Direction input the driver. High means forward.
-/// \param[in] pin3 Arduino digital pin number for motor pin 3. Defaults
-/// to pin 4.
-/// \param[in] pin4 Arduino digital pin number for motor pin 4. Defaults
-/// to pin 5.
-/// \param[in] enable If this is true (the default), enableOutputs() will be called to enable
-/// the output pins at construction time.
-///AccelStepper(uint8_t interface =AccelStepper::FULL4WIRE, uint8_t pin1 = 2, uint8_t pin2 = 3, uint8_t pin3 = 4, uint8_t pin4 = 5, bool enable = true);
+/*      Pipeting Robot Controller code -running on Arduino Mega 2560  ///////////////
+// 
+// Author: Kostas Lagogiannis costaslag@gmail.com 2016
+// Synopsis:
+    This code is to be used to run on the controller of the associated open hardware design pipetting machine.
+    It drives the following peripherals:
+    *Step. MotorDriver X,Step MotorDriver Y, Step MotorDriver  Z (Ballscrew), Step MotorDriver P (Non Captive ballscrew) -
+    these are controller via 3 wire interface wired to the arduino board at pin number defined in the header file.
+    We use a 3 wire interface to each MotorDriver (EN, DIR, STEP - HY-DIV268N-5A with active Low setup on pins)
+    
+    Using the AccelStepper Library V 1.51 that contains the Multistepper class too (not currently used)
+    ///AccelStepper(uint8_t interface =AccelStepper::FULL4WIRE, uint8_t pin1 = 2, uint8_t pin2 = 3, uint8_t pin3 = 4, uint8_t pin4 = 5, bool enable = true);
+    \param[in] is the Step input to the driver. Low to high transition means to step)
+    \param[in] this is the Direction input the driver. High means forward
+    \param[in] enable If this is true (the default), enableOutputs() will be called to enable the output pins at construction time.
 
 
-// Font structures for newer Adafruit_GFX (1.1 and later).
-// Example fonts are included in 'Fonts' directory.
-// To use a font in your Arduino sketch, #include the corresponding .h
-// file and pass address of GFXfont struct to setFont().  Pass NULL to
-// revert to 'classic' fixed-space bitmap font.
+    Display: 2.7inch OLED 128x64: Using Adafruit GFX and Adafruit1325 Driver 
+    Font structures for newer Adafruit_GFX (1.1 and later).
+    Example fonts are included in 'Fonts' directory.
+    To use a font in your Arduino sketch, #include the corresponding .h
+    file and pass address of GFXfont struct to setFont().  Pass NULL to
+    revert to 'classic' fixed-space bitmap font.
 
-//Note Any imported library is copied to the local sketchbook subfolder
-////
-// 26/5/16 -Bug : I chaned something and the accelleration to Homing Has failed
+// Note Any imported library is copied to the local sketchbook subfolder
+//// Revision and Notes
+// 26/5/16: -Bug : I changed something and the accelleration to Homing Has failed
+// 4/6/16 : Changed pin wiring to use Digitalpins header, Moved definitions to dedicated header file  
 
+*/
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 
@@ -38,108 +37,16 @@
 #include <Adafruit_GFX.h>
 //#include <gfxfont.h>
 #include <Adafruit_SSD1325.h>
-#include <FreeMono9pt7b.h>
+#include <Fonts/FreeMono9pt7b.h>
 //#include <FreeSerifItalic9pt7b.h>
+
+#include "lh_controller.h"
+
     
 #if (SSD1325_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
-
-
-
-//  DEFINITIONS 
-//  PINS
-//
-#define TXT_TITLE          "-AutoPip-"
-
-#define PIN_MOTOR_P_EN    2 //Pipette drive
-#define PIN_MOTOR_P_STEP  3
-#define PIN_MOTOR_P_DIR   4
-
-#define PIN_MOTOR_Z_EN    5
-#define PIN_MOTOR_Z_STEP  6
-#define PIN_MOTOR_Z_DIR   7
-
-#define PIN_MOTOR_Y_EN    8
-#define PIN_MOTOR_Y_STEP  9
-#define PIN_MOTOR_Y_DIR   10
-
-#define PIN_MOTOR_X_EN    11
-#define PIN_MOTOR_X_STEP  12
-#define PIN_MOTOR_X_DIR   13
-
-#define PIN_AJR_X         0 //Joystick R
-#define PIN_AJR_Y         1
-#define PIN_SW_JR         46 //JoyStick R PushSwitch
-
-
-
-//Limit Switches - X and Y axes have on both sides
-#define PIN_SW_XL           52
-#define PIN_SW_XR           51
-#define PIN_SW_YF           50
-#define PIN_SW_YB           49
-#define PIN_SW_ZT           48
-#define PIN_SW_PB           47
-
-// These are neede for both hardware & softare SPI /Modified lib to give SPI_CLOCK_DIV4 
-#define OLED_CS 2
-#define OLED_RESET 3
-#define OLED_DC 48
-
-
-// EG X-Y position bed driven by 2 steppers
-// Alas its not possible to build an array of these with different pins for each :-(
-// Up to 10 steppers can be handled as a group by MultiStepper
-
-long positions[4]; // Array of desired stepper positions
-  
-
-AccelStepper stepperX(AccelStepper::DRIVER,PIN_MOTOR_X_STEP,PIN_MOTOR_X_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepperY(AccelStepper::DRIVER,PIN_MOTOR_Y_STEP,PIN_MOTOR_Y_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepperZ(AccelStepper::DRIVER,PIN_MOTOR_Z_STEP,PIN_MOTOR_Z_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-
-MultiStepper steppers;
-
-///Screen Vars   
-//Adafruit_SSD1306 display(OLED_RESET);
-// this is for hardware SPI, fast! but fixed oubs
-Adafruit_SSD1325 display(OLED_DC, OLED_RESET, OLED_CS);
-
-///STATE Variables
-enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,JOYSTICK=6,HOLD_LARVA=7,LAST_STATE=8};
-
-ENUM_LH_STATE systemState = LAST_STATE;
-ENUM_LH_STATE nextState = HOMING;
-
-//Limit Switches Global Variables
-int stateSW_XL = 1;
-int stateSW_XR = 1;
-int stateSW_YF = 1;
-int stateSW_YB = 1;
-int stateSW_ZT = 1;
-int stateSW_PB = 1;
-int stateSW_JR = 1; //Joystick
-
-int posJRx     = 0; //Joystick Analog position X
-int posJRy     = 0; //Joystick Analog position X
-
-/// Serial COMMAND interface ///
-boolean stringComplete             = false;  // whether the string is complete
-String inputString                 = "";         // a string to hold incoming data
-unsigned long stateTimeOut         = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
-unsigned long stateReportInterval  =0; //Used to Time a frequent serial output to host. so port does not freeze
-
-
-// Function Prototypes
-int checkHoming(); //Check homing conditions and set pos to 0 when reached
-void handleStartStateEvents(); //Handles actions linked to moving to new state
-void handleStopStateEvents(); //Checks conditions for when current state end and transits to next one
-int handleSerialCmd();
-
-void dispWelcome();
 
 // Called Once on startup(after reset) for initialization //
 void setup() {
