@@ -1,3 +1,4 @@
+
 /*      Pipeting Robot Controller code -running on Arduino Mega 2560  ///////////////
 // 
 // Author: Kostas Lagogiannis costaslag@gmail.com 2016
@@ -51,7 +52,7 @@
 // Called Once on startup(after reset) for initialization //
 void setup() {
   Serial.begin(9600);
-  Serial.print("Liquid Handler Controller Initializing\n");
+  Serial.print("* Liquid Handler Controller Initializing \n");
   inputString.reserve(100);
   
   //DISPLAY/
@@ -62,9 +63,14 @@ void setup() {
   //display.setFont(&FreeSerifItalic9pt7b);
   display.setFont(&FreeMono9pt7b);
 
+  Serial.print("*Set Welcome Screen * \n");
   dispWelcome();
+
   delay(1500);
   display.clearDisplay();
+  display.display();
+  Serial.print("*Done * \n");
+
   
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
@@ -202,13 +208,15 @@ else
      // clear the string:
     inputString = "";
     stringComplete = false;
-    }
+   }
 
 
   //update display Check if time to report to host
   if (stateReportInterval < millis())
   {//Report Every sec.
     stateReportInterval = millis()+500;
+
+   
     if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0) //Display Updates disrupt the  Motion
     {
       dispState();
@@ -690,7 +698,7 @@ void dispWelcome()
   display.setTextSize(1);
   display.setCursor(0,28);
 
-  display.print(" Initializing...");
+  display.print(".Breathing.");
   display.display();
 
 }
@@ -794,7 +802,7 @@ void dispState()
         display.setTextColor (WHITE,BLACK); // 'inverted' text
  
   
-  //display.display();
+  display.display();
 
 }
 
