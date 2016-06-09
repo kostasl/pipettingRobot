@@ -117,11 +117,6 @@ void setup() {
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperP);
 
-  positions[0] = 800; //X
-  positions[1] = 800;//Y
-  positions[2] = 300; //Z Axis
-  positions[3] = 300; //Pipete
-
  // steppers.moveTo(positions);
   //steppers.runSpeedToPosition(); // Blocks until all are in position
   //stepperX.moveTo(positions[0]);
@@ -141,6 +136,14 @@ void setup() {
  //digitalWrite(stateSW_JR,HIGH);
 
   //steppers.addStepper(stepper2);
+
+  //Load Saved Positions
+  //Empty Target Array
+  memset(savedPositions,0,sizeof(savedPositions));
+
+  savedPositions[0] = (t_position){800,800,200,100};
+  iposSaveIndex = 1; //pos to save next Pos;
+  iposCurrentIndex=0;
 }
 
 
@@ -440,14 +443,10 @@ void handleStopStateEvents()
       case MOVING:
          if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
          {
-           //Invert Positions For next Run
-          positions[0] = positions[0]*(-1);
-          positions[1] = positions[1]*(-1);
-          positions[2] = positions[2]*(-1);
-          positions[3] = positions[3]*(-1);
+          if (iposCurrentIndex < MAX_POSITIONS)
+            iposCurrentIndex++;
           
-         
-           nextState = TEST_RUN; //Do it again
+            nextState = TEST_RUN; //Do it again
          }
          else
          {
@@ -472,10 +471,19 @@ void handleStopStateEvents()
          else
            stepperX.move(0);
            
-         if (stateSW_JR == 1){
-         //  nextState = IDLE;
+         if (stateSW_JR == 1){ //Click So Save New Position
+            nextState = SAVE_POSITION;
          }
            
+      break;
+
+      case SAVE_POSITION:
+
+        //Only Move Back to Joystick Once Button Has been released          
+        if (stateSW_JR == 1){ //Click So Save New Position
+            nextState = SAVE_POSITION;
+         }else
+          nextState = JOYSTICK;
       break;
       
       default: //Uknown option
@@ -490,6 +498,8 @@ void handleStartStateEvents()
 {  
     switch (nextState)
     {
+      char buff[30];
+
       case IDLE:
 
         stepperX.stop();
@@ -547,13 +557,16 @@ void handleStartStateEvents()
         stepperZ.setAcceleration(1500); 	
         stepperP.setAcceleration(1500);
 
-        stepperX.moveTo(positions[0]); 
-        stepperY.moveTo(positions[1]);
-        stepperZ.moveTo(positions[2]);
-        stepperP.moveTo(positions[3]);
+        stepperX.moveTo(savedPositions[iposCurrentIndex].Xpos); 
+        stepperY.moveTo(savedPositions[iposCurrentIndex].Ypos);
+        stepperZ.moveTo(savedPositions[iposCurrentIndex].Zpos);
+        stepperP.moveTo(savedPositions[iposCurrentIndex].Ppos);
 
-    
-          systemState = TEST_RUN;
+
+        sprintf(buff,"Saved Pos i:%d, X: %d,Y: %d,%d,%d ",iposCurrentIndex, savedPositions[iposCurrentIndex].Xpos,savedPositions[iposCurrentIndex].Ypos );
+        Serial.println(buff);
+        
+        systemState = TEST_RUN;
       break;
       
       case MOVING:
@@ -562,8 +575,37 @@ void handleStartStateEvents()
       break;
 
       case JOYSTICK:
-          systemState = JOYSTICK;      
+          systemState = JOYSTICK;
+          
+          stateTimeOut =  millis()+15000; //With timeout
+      
       break;
+
+      case SAVE_POSITION: //Add Current Position TO list Of Saved positions
+            //stepperX.stop();
+            //stepperY.stop();   
+            //stepperZ.stop();
+            //stepperP.stop();
+               
+            savedPositions[iposSaveIndex].Xpos = 100+stepperX.currentPosition();
+            savedPositions[iposSaveIndex].Ypos = stepperY.currentPosition();
+            savedPositions[iposSaveIndex].Zpos = stepperZ.currentPosition();
+            savedPositions[iposSaveIndex].Ppos = stepperP.currentPosition();
+          
+            //char buff[30];
+            sprintf(buff,"Saved Pos: %d,%d,%d,%d,%d ", savedPositions[iposSaveIndex].Xpos,savedPositions[iposSaveIndex].Ypos );
+            Serial.println(buff);
+
+            iposSaveIndex++;
+            
+            dispState();
+            display.display();
+
+            
+            systemState = SAVE_POSITION;
+      break;
+
+      
 
       default: //Uknown option
         nextState = systemState; //Reset Next State to current
@@ -712,11 +754,12 @@ void dispState()
   //display.stopscroll();
   display.setTextColor( WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
-  
 
     //State finished  
   switch (systemState)
     {
+      char buff[30];  
+
       case IDLE: //1
         display.setCursor(0,11);
         display.println(TXT_TITLE); 
@@ -759,7 +802,6 @@ void dispState()
       break;
 
       case JOYSTICK:
-        char buff[30];
         sprintf(buff,"%d - %d",posJRx,posJRy);
         display.setCursor(0,11);
         display.println("Joystick");
@@ -771,7 +813,12 @@ void dispState()
   
       break;
 
-      
+      case SAVE_POSITION:
+        display.setCursor(0,11);
+        display.print(iposSaveIndex);
+        display.println(" POSITION \n \t SAVED");
+        
+      break;
       
       default:
       break;
@@ -802,7 +849,7 @@ void dispState()
         display.setTextColor (WHITE,BLACK); // 'inverted' text
  
   
-  display.display();
+  //display.display();
 
 }
 
