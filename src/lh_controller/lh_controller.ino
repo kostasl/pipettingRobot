@@ -141,8 +141,8 @@ void setup() {
   //Empty Target Array
   memset(savedPositions,0,sizeof(savedPositions));
 
-  savedPositions[0] = (t_position){800,800,200,100};
-  iposSaveIndex = 1; //pos to save next Pos;
+  //savedPositions[0] = (t_position)800,800,200,100};
+  iposSaveIndex = 0; //pos to save next Pos;
   iposCurrentIndex=0;
 }
 
@@ -441,17 +441,26 @@ void handleStopStateEvents()
       break;
 
       case MOVING:
+            nextState = MOVING;
+
          if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
          {
-          if (iposCurrentIndex < MAX_POSITIONS)
-            iposCurrentIndex++;
-          
-            nextState = TEST_RUN; //Do it again
+            //displState();
+          //Do not Exceed Last saved Position
+           if (iposCurrentIndex < iposSaveIndex)
+           { 
+
+              
+              iposCurrentIndex++;
+              nextState = TEST_RUN; //Do it again
+          }else
+          { //DOnethe sequence - Go Back to Idle
+            nextState = IDLE;
+            iposCurrentIndex = 0;
+          }
          }
-         else
-         {
-           nextState = MOVING;
-         }
+
+     
       break;
       
       case JOYSTICK:
@@ -498,7 +507,7 @@ void handleStartStateEvents()
 {  
     switch (nextState)
     {
-      char buff[30];
+      char buff[130];
 
       case IDLE:
 
@@ -557,13 +566,19 @@ void handleStartStateEvents()
         stepperZ.setAcceleration(1500); 	
         stepperP.setAcceleration(1500);
 
+        stepperX.setMaxSpeed(2000);
+        stepperY.setMaxSpeed(2000);
+        stepperZ.setMaxSpeed(2000);
+        stepperP.setMaxSpeed(2000);
+
+        
         stepperX.moveTo(savedPositions[iposCurrentIndex].Xpos); 
         stepperY.moveTo(savedPositions[iposCurrentIndex].Ypos);
         stepperZ.moveTo(savedPositions[iposCurrentIndex].Zpos);
         stepperP.moveTo(savedPositions[iposCurrentIndex].Ppos);
 
 
-        sprintf(buff,"Saved Pos i:%d, X: %d,Y: %d,%d,%d ",iposCurrentIndex, savedPositions[iposCurrentIndex].Xpos,savedPositions[iposCurrentIndex].Ypos );
+        sprintf(buff,"Run to Pos i:%d, X:%ld, Y:%ld,Z:%ld,P:%ld ",iposCurrentIndex, savedPositions[iposCurrentIndex].Xpos,savedPositions[iposCurrentIndex].Ypos,savedPositions[iposCurrentIndex].Zpos,savedPositions[iposCurrentIndex].Ppos);
         Serial.println(buff);
         
         systemState = TEST_RUN;
@@ -587,13 +602,13 @@ void handleStartStateEvents()
             //stepperZ.stop();
             //stepperP.stop();
                
-            savedPositions[iposSaveIndex].Xpos = 100+stepperX.currentPosition();
+            savedPositions[iposSaveIndex].Xpos = stepperX.currentPosition();
             savedPositions[iposSaveIndex].Ypos = stepperY.currentPosition();
             savedPositions[iposSaveIndex].Zpos = stepperZ.currentPosition();
             savedPositions[iposSaveIndex].Ppos = stepperP.currentPosition();
           
-            //char buff[30];
-            sprintf(buff,"Saved Pos: %d,%d,%d,%d,%d ", savedPositions[iposSaveIndex].Xpos,savedPositions[iposSaveIndex].Ypos );
+            //char buff[130];
+            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", iposSaveIndex,savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
             Serial.println(buff);
 
             iposSaveIndex++;
@@ -758,7 +773,7 @@ void dispState()
     //State finished  
   switch (systemState)
     {
-      char buff[30];  
+      char buff[130];  
 
       case IDLE: //1
         display.setCursor(0,11);
