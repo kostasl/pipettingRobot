@@ -27,8 +27,12 @@
 //// Revision and Notes
 // 26/5/16: -Bug : I changed something and the accelleration to Homing Has failed
 // 4/6/16 : Changed pin wiring to use Digitalpins header, Moved definitions to dedicated header file  
-// 16/6/16 Added Learning pos sequence via joystic - and replay- Note sometimes sequence run stops and needs to issue SST 4 again
+// 10/6/16 Added Learning pos sequence via joystic - and replay- Note sometimes sequence run stops and needs to issue SST 4 again
+// 12/06/12 Added Switch debouncing - Handling of 5 extra controller/joystick buttons for learning pos. 
+   Problems To FIX:Jitter/drift on Y axis backwards,Z axis sometimes does not home completely thus zero position misplaced causes crash through tip holder!
+
 */
+
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 
@@ -112,7 +116,7 @@ void setup() {
   
   stepperX.setAcceleration(1500); 
   stepperY.setAcceleration(1500); 	
-  stepperZ.setAcceleration(1500); 	
+  stepperZ.setAcceleration(2500); 	
   stepperP.setAcceleration(1500);
 
   
@@ -173,6 +177,9 @@ void loop() {
   if ((stateTimeOut < millis()) && stateTimeOut != 0)
   {
    stateTimeOut = 0;
+   display.println("-TIMEOUT-");
+   display.display();
+   delay(1000);
    nextState = IDLE;
   }
 
@@ -241,27 +248,19 @@ else
 int checkHoming()
 {
   int iret = 0;
-  //Save prior Read State
-  //bool bXFlagged = !(stateSW_XR == 1);
-  //bool bYFlagged = !(stateSW_YB == 1);
-  bool bZFlagged = !(stateSW_ZT == 1);
-  bool bPBlagged = !(stateSW_PB == 1);
   
   //Read Switches Home Reached
   
   //stateSW_XR =  //digitalRead(PIN_SW_XR);
   //stateSW_YB = digitalRead(PIN_SW_YB);
-  stateSW_ZT = digitalRead(PIN_SW_ZT);
-  stateSW_PB = digitalRead(PIN_SW_PB);
+//  stateSW_ZT = digitalRead(PIN_SW_ZT);
+//  stateSW_PB = digitalRead(PIN_SW_PB);
 
   display.setTextColor (WHITE,BLACK); // 'inverted' text
     
    
    if (btn_XR_lim.onPressed())
    {
-     
-      
-      iret++; //Increment Number of Switches pressed 
       
         stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
         stepperX.stop();
@@ -270,37 +269,39 @@ int checkHoming()
         display.display();
      }
 
-     if (btn_XR_lim.isPressed() && stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
-     {
-         stepperX.moveTo(1);
-         stepperX.stop();
-      }
+    if (btn_XR_lim.isPressed() )
+    {
+       iret++; //Increment Number of Switches pressed 
+       if (stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
+        {
+           stepperX.moveTo(1);
+           stepperX.stop();
+       }
+    }
     
     
     if (btn_YB_lim.onPressed()) //Triggered Once When State Changes to pressed
-    {
-        iret++; //Increment Number of Switches pressed 
-      
+    {      
         stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
         stepperY.stop(); //Just in case future vers change the above
         display.setCursor(0,57);
         display.println("Y ON");
         display.display();
-      }
+    }
       
-      if (btn_YB_lim.isPressed() && stepperY.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+    if (btn_YB_lim.isPressed())
+    {
+      iret++; //Increment Number of Switches pressed 
+      if (stepperY.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
       {
           stepperY.moveTo(1);
           stepperY.stop();
       }
- 
-   
+    }
 
     if (btn_ZT_lim.onPressed())
     {
-      //
-      iret++;
-    
+      //    
       stepperZ.setCurrentPosition(0);
       stepperZ.stop();
       stepperZ.setSpeed(0);
@@ -309,18 +310,21 @@ int checkHoming()
       display.display();
     }
     
-    if (btn_ZT_lim.isPressed() && stepperZ.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+    if (btn_ZT_lim.isPressed())
     {
-        stepperZ.moveTo(1);
-        stepperZ.stop();
+      iret++; //Increment Number of Switches pressed 
+
+      if (stepperZ.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperZ.moveTo(1);
+          stepperZ.stop();
+  
+      }
     }
 
-
-    
     
     if (btn_PB_lim.onPressed())
     {
-      iret++;
 
         stepperP.setCurrentPosition(0);
         stepperP.setSpeed(0);
@@ -330,28 +334,28 @@ int checkHoming()
         display.display();
     }
 
-    if (btn_PB_lim.isPressed() && stepperP.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+    if (btn_PB_lim.isPressed() )
     {
-        stepperP.moveTo(1);
-        stepperP.stop();
+      iret++; //Increment Number of Switches pressed 
+
+      if (stepperP.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperP.moveTo(1);
+          stepperP.stop();
+  
+      }
     }
 
-//    Serial.print("crcHOme:\t");
-//    Serial.println(iret,DEC);
 
   return iret;
 }
 
-
+// Out Of Range Control
+//Check if Carrriege has reached the  Switches at the limit Of Axis opposite of Home - 
+// Returns : Number of limit Switches Hit
 int checkOutOfRange()
 {
   int iret = 0;
-  //bool bXFlagged = !(stateSW_XL == 1);
-  //bool bYFlagged = !(stateSW_YF == 1);
-
-    //EXtreme Switches
-  //stateSW_XL = digitalRead(PIN_SW_XL);
-  //stateSW_YF = digitalRead(PIN_SW_YF);
 
   if (btn_XL_lim.onPressed())
   {
@@ -412,7 +416,7 @@ void handleStopStateEvents()
         //stepperX.setMaxSpeed(1);
         //stepperP.setMaxSpeed(1);
         
-         if (stateSW_JR == 1){
+         if (btn_JR_lim.onPressed()){
            nextState = JOYSTICK;
            display.println("BUTTON");
            display.display();
@@ -426,7 +430,12 @@ void handleStopStateEvents()
         {
           nextState = HOME;
         }else
-        {
+        {//Refresh Move command Until Limit Switch is hit
+          stepperZ.move(-5000);
+          stepperP.move(-5000);
+          //stepperX.move(-5000);
+          //stepperY.move(-5000);
+
           nextState = HOMING;
         }
       break;
@@ -452,15 +461,14 @@ void handleStopStateEvents()
          {
             //displState();
           //Do not Exceed Last saved Position
-           if (iposCurrentIndex < iposSaveIndex)
+           if (iposCurrentIndex <= iposSaveIndex)
            { 
 
-              
               iposCurrentIndex++;
               nextState = TEST_RUN; //Do it again
           }else
-          { //DOnethe sequence - Go Back to Idle
-            nextState = IDLE;
+          { //DOne the sequence - Go Back HOME
+            nextState = HOMING;
             iposCurrentIndex = 0;
           }
          }
@@ -472,8 +480,10 @@ void handleStopStateEvents()
  
         stepperY.setMaxSpeed(2*abs(posJRy));
         stepperX.setMaxSpeed(2*abs(posJRx));
-        stepperZ.setMaxSpeed(1000);
-        stepperP.setMaxSpeed(1000);
+        stepperZ.setMaxSpeed(2000);
+        stepperP.setMaxSpeed(1500);
+        stepperZ.setAcceleration(2500);   
+
 
         
         if (abs(posJRy) > 10)
@@ -509,7 +519,7 @@ void handleStopStateEvents()
          if(stateSW_BT2==0 && stateSW_BT5 == 0)
            stepperP.move(0);
 
-        if (stateSW_JR == 1){ //Click So Save New Position
+        if (btn_JR_lim.onPressed()){ //Click So Save New Position
             nextState = SAVE_POSITION;
          }
 
@@ -523,10 +533,15 @@ void handleStopStateEvents()
       case SAVE_POSITION:
 
         //Only Move Back to Joystick Once Button Has been released          
-        if (stateSW_JR == 1){ //Click So Save New Position
-            nextState = SAVE_POSITION;
-         }else
+        if (btn_JR_lim.onReleased()) //Click So Save New Position
           nextState = JOYSTICK;
+        else
+          nextState = SAVE_POSITION;
+
+      break;
+
+      case RESET:
+        nextState = IDLE;
       break;
       
       default: //Uknown option
@@ -556,16 +571,17 @@ void handleStartStateEvents()
       case HOMING:
         stepperX.setAcceleration(1500); 
         stepperY.setAcceleration(1500); 	
-        stepperZ.setAcceleration(1500); 	
+        stepperZ.setAcceleration(1500);
+        stepperZ.setMaxSpeed(2000); 	
         stepperP.setAcceleration(1500);
 
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
-        stepperZ.moveTo(-40000);
+        stepperZ.moveTo(-20000);
         stepperP.moveTo(-8000);
         
 
-        stateTimeOut =  millis()+25000; //With timeout
+        stateTimeOut =  millis()+65000; //With timeout
         systemState = HOMING;
       break;
 
@@ -614,7 +630,7 @@ void handleStartStateEvents()
 
         sprintf(buff,"Run to Pos i:%d, X:%ld, Y:%ld,Z:%ld,P:%ld ",iposCurrentIndex, savedPositions[iposCurrentIndex].Xpos,savedPositions[iposCurrentIndex].Ypos,savedPositions[iposCurrentIndex].Zpos,savedPositions[iposCurrentIndex].Ppos);
         Serial.println(buff);
-        
+        stateTimeOut =  0; //No timeout
         systemState = TEST_RUN;
       break;
       
@@ -654,6 +670,15 @@ void handleStartStateEvents()
             systemState = SAVE_POSITION;
       break;
 
+      case RESET:
+          reset();
+          Serial.println("-RESET-");
+          dispState();
+          display.display();
+
+          systemState = RESET;
+
+      break;
       
 
       default: //Uknown option
@@ -868,7 +893,13 @@ void dispState()
         display.println(" POSITION \n \t SAVED");
         
       break;
-      
+
+      case RESET:
+        display.setCursor(0,11);
+        display.print(iposSaveIndex);
+        display.println(" RESET ");
+      break;
+
       default:
       break;
     }
@@ -911,12 +942,21 @@ void readJoystick()
 {
   posJRx       = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
   posJRy       = analogRead(PIN_AJR_Y)-531;
-  stateSW_JR    = 1-(int)digitalRead(PIN_SW_JR);  //Invert So it Behaves like the limit SW
+  //stateSW_JR    = 1-(int)digitalRead(PIN_SW_JR);  //Invert So it Behaves like the limit SW
   stateSW_BT1    = 1-(int)digitalRead(PIN_SW_BT1);  //Invert So it Behaves like the limit SW
   stateSW_BT2    = 1-(int)digitalRead(PIN_SW_BT2);  //Invert So it Behaves like the limit SW
   stateSW_BT3    = 1-(int)digitalRead(PIN_SW_BT3);  //Invert So it Behaves like the limit SW
   stateSW_BT4    = 1-(int)digitalRead(PIN_SW_BT4);  //Invert So it Behaves like the limit SW
   stateSW_BT5    = 1-(int)digitalRead(PIN_SW_BT5);  //Invert So it Behaves like the limit SW
 
+}
+
+void reset()
+{
+  memset(savedPositions,0,sizeof(savedPositions));
+
+  //savedPositions[0] = (t_position)800,800,200,100};
+  iposSaveIndex = 0; //pos to save next Pos;
+  iposCurrentIndex=0;
 }
 
