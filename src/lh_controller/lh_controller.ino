@@ -41,6 +41,10 @@
 #include <Fonts/FreeMono9pt7b.h>
 //#include <FreeSerifItalic9pt7b.h>
 
+//For Switch Debouncing
+#include <RBD_Timer.h>
+#include <RBD_Button.h>
+
 #include "lh_controller.h"
 
     
@@ -126,18 +130,20 @@ void setup() {
 
  
  //Setup Buttons
- pinMode(PIN_SW_XL,INPUT_PULLUP);
- pinMode(PIN_SW_XR,INPUT_PULLUP);
- pinMode(PIN_SW_YF,INPUT_PULLUP);
- pinMode(PIN_SW_YB,INPUT_PULLUP);
- pinMode(PIN_SW_ZT,INPUT_PULLUP);
- pinMode(PIN_SW_PB,INPUT_PULLUP);
- pinMode(PIN_SW_JR,INPUT_PULLUP); //Joystic Sw Setup
+ //pinMode(PIN_SW_XL,INPUT_PULLUP);
+ //pinMode(PIN_SW_XR,INPUT_PULLUP);
+ //pinMode(PIN_SW_YF,INPUT_PULLUP);
+ //pinMode(PIN_SW_YB,INPUT_PULLUP);
+ //pinMode(PIN_SW_ZT,INPUT_PULLUP);
+ //pinMode(PIN_SW_PB,INPUT_PULLUP);
+ //pinMode(PIN_SW_JR,INPUT_PULLUP); //Joystic Sw Setup
+ 
  pinMode(PIN_SW_BT1,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT2,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT3,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT4,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
+
 
  //digitalWrite(stateSW_JR,HIGH);
 
@@ -197,16 +203,11 @@ else
 
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
-//if (stateSW_XL == 1)
     stepperX.run();  
-// if (stateSW_YF == 1)
     stepperY.run();
-//  if (stateSW_ZT == 1)
     stepperZ.run();
-//  if (stateSW_PB == 1)
     stepperP.run();
 
-   
 ////-------------------////
 
    //Handle Serial Commands
@@ -241,100 +242,100 @@ int checkHoming()
 {
   int iret = 0;
   //Save prior Read State
-  bool bXFlagged = !(stateSW_XR == 1);
-  bool bYFlagged = !(stateSW_YB == 1);
+  //bool bXFlagged = !(stateSW_XR == 1);
+  //bool bYFlagged = !(stateSW_YB == 1);
   bool bZFlagged = !(stateSW_ZT == 1);
   bool bPBlagged = !(stateSW_PB == 1);
   
   //Read Switches Home Reached
   
-  stateSW_XR = digitalRead(PIN_SW_XR);
-  stateSW_YB = digitalRead(PIN_SW_YB);
+  //stateSW_XR =  //digitalRead(PIN_SW_XR);
+  //stateSW_YB = digitalRead(PIN_SW_YB);
   stateSW_ZT = digitalRead(PIN_SW_ZT);
   stateSW_PB = digitalRead(PIN_SW_PB);
 
-   display.setTextColor (WHITE,BLACK); // 'inverted' text
+  display.setTextColor (WHITE,BLACK); // 'inverted' text
     
-   if (stateSW_XR == 0){
-      //stepperX.moveTo(0);
+   
+   if (btn_XR_lim.onPressed())
+   {
+     
       
-      iret++;
+      iret++; //Increment Number of Switches pressed 
       
-      if (!bXFlagged){ //If switch just changed then Update Screen - Note Screen has a buffer
         stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
         stepperX.stop();
         display.setCursor(0,45);
         display.println("X ON");
         display.display();
-      }else
-      {
-       if (stepperX.targetPosition() < 1){ //Only stopMotor if next pos is pressing against switch
-           stepperX.moveTo(1);
-           stepperX.stop();
-         }
+     }
+
+     if (btn_XR_lim.isPressed() && stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
+     {
+         stepperX.moveTo(1);
+         stepperX.stop();
       }
-    }
     
     
-    if (stateSW_YB == 0)
+    if (btn_YB_lim.onPressed()) //Triggered Once When State Changes to pressed
     {
-      //stepperY.moveTo(0);
-      //
-      iret++;  
+        iret++; //Increment Number of Switches pressed 
       
-      if (!bYFlagged){ //If switch just changed then Update Screen
         stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
         stepperY.stop(); //Just in case future vers change the above
         display.setCursor(0,57);
         display.println("Y ON");
         display.display();
-      }else
-      {
-
-        if (stepperY.targetPosition() < 1)
-        {
-         stepperY.moveTo(1);
-         stepperY.stop();
-        }
       }
-    }
+      
+      if (btn_YB_lim.isPressed() && stepperY.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperY.moveTo(1);
+          stepperY.stop();
+      }
+ 
    
 
-    if (stateSW_ZT == 0)
+    if (btn_ZT_lim.onPressed())
     {
       //
       iret++;
-      
-      if (!bZFlagged){ //If switch just changed then Update Screen
-        stepperZ.setCurrentPosition(0);
-        stepperZ.stop();
-        stepperZ.setSpeed(0);
-        display.setCursor(50,45);
-        display.println("Z ON");
-        display.display();
-      }
-    }else
-    {
+    
+      stepperZ.setCurrentPosition(0);
+      stepperZ.stop();
+      stepperZ.setSpeed(0);
+      display.setCursor(50,45);
+      display.println("Z ON");
+      display.display();
     }
-  
-    if (stateSW_PB == 0)
+    
+    if (btn_ZT_lim.isPressed() && stepperZ.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
     {
-      //stepperP.moveTo(0);
-      //stepperP.stop();
+        stepperZ.moveTo(1);
+        stepperZ.stop();
+    }
+
+
+    
+    
+    if (btn_PB_lim.onPressed())
+    {
       iret++;
 
-      if (!bPBlagged){ //If switch just changed then Update Screen
         stepperP.setCurrentPosition(0);
         stepperP.setSpeed(0);
         stepperP.stop();
         display.setCursor(50,57);
         display.println("P ON");
         display.display();
-      }
-    }else
-    {
     }
-    
+
+    if (btn_PB_lim.isPressed() && stepperP.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+    {
+        stepperP.moveTo(1);
+        stepperP.stop();
+    }
+
 //    Serial.print("crcHOme:\t");
 //    Serial.println(iret,DEC);
 
@@ -345,22 +346,22 @@ int checkHoming()
 int checkOutOfRange()
 {
   int iret = 0;
-  bool bXFlagged = !(stateSW_XL == 1);
-  bool bYFlagged = !(stateSW_YF == 1);
+  //bool bXFlagged = !(stateSW_XL == 1);
+  //bool bYFlagged = !(stateSW_YF == 1);
 
     //EXtreme Switches
-  stateSW_XL = digitalRead(PIN_SW_XL);
-  stateSW_YF = digitalRead(PIN_SW_YF);
+  //stateSW_XL = digitalRead(PIN_SW_XL);
+  //stateSW_YF = digitalRead(PIN_SW_YF);
 
-  if (stateSW_XL == 0)
+  if (btn_XL_lim.onPressed())
   {
-      if (!bXFlagged){ //If switch just changed then Update Screen - Note Screen has a buffer
         stepperX.setSpeed(0);
         display.setCursor(0,45);
         display.println("X ON");
         display.display();
-      }else
-      {
+  }
+  if (btn_XL_lim.isPressed())
+  {
       //Do not allow to push against the switch
         if (stepperX.targetPosition() - stepperX.currentPosition() > 0)
         {
@@ -368,33 +369,31 @@ int checkOutOfRange()
          stepperX.moveTo(stepperX.currentPosition());
          stepperX.stop(); //Just in case future vers change the above
         }
-      }
-
+      
     iret++;
   } 
-  if (stateSW_YF == 0) {
-
-      if (!bYFlagged){ //If switch just changed then Update Screen
+  
+  if (btn_YF_lim.onPressed())
+  {
         stepperY.setSpeed(0);//Just in case future vers change the above
         display.setCursor(0,57);
         display.println("Y ON");
-        display.display();
-      }else
-      {
-
+        display.display(); //These Calls CAuse jitter
+  }
+  if (btn_YF_lim.isPressed())
+  {
         //Do not allow to push against the switch
         if (stepperY.targetPosition() - stepperY.currentPosition() > 0)
         {
            stepperY.moveTo(stepperY.currentPosition());
            stepperY.stop(); //Just in case future vers change the above
         }
-      }
 
-    
-
+  
     iret++;
   }
 
+//Return The number of Switches Pressed
 return iret;
 }
 
@@ -490,22 +489,22 @@ void handleStopStateEvents()
            stepperX.move(0);
 
         if (stateSW_BT1 == 1)
-           stepperZ.move(-400);
+           stepperZ.move(-800); //Up Z Axis
          //else
            
-        if (stateSW_BT4 == 1)
-           stepperZ.move(400);
+        if (stateSW_BT4 == 1) //Down Z Axis
+           stepperZ.move(800);
          //else
            //stepperZ.move(0);
 
         if(stateSW_BT1==0 && stateSW_BT4 == 0)
            stepperZ.move(0);
 
-        if (stateSW_BT2 == 1)
-           stepperP.move(-300);
+        if (stateSW_BT2 == 1) //Up Pippete
+           stepperP.move(400);
 
-        if (stateSW_BT5 == 1)
-           stepperP.move(300);
+        if (stateSW_BT5 == 1) //Down Pippete
+           stepperP.move(-400);
 
          if(stateSW_BT2==0 && stateSW_BT5 == 0)
            stepperP.move(0);
@@ -562,7 +561,7 @@ void handleStartStateEvents()
 
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
-        stepperZ.moveTo(-12000);
+        stepperZ.moveTo(-40000);
         stepperP.moveTo(-8000);
         
 
