@@ -27,7 +27,7 @@
 //// Revision and Notes
 // 26/5/16: -Bug : I changed something and the accelleration to Homing Has failed
 // 4/6/16 : Changed pin wiring to use Digitalpins header, Moved definitions to dedicated header file  
-
+// 16/6/16 Added Learning pos sequence via joystic - and replay- Note sometimes sequence run stops and needs to issue SST 4 again
 */
 #include <AccelStepper.h>
 #include <MultiStepper.h>
@@ -133,6 +133,12 @@ void setup() {
  pinMode(PIN_SW_ZT,INPUT_PULLUP);
  pinMode(PIN_SW_PB,INPUT_PULLUP);
  pinMode(PIN_SW_JR,INPUT_PULLUP); //Joystic Sw Setup
+ pinMode(PIN_SW_BT1,INPUT_PULLUP); //Joystic Sw Setup
+ pinMode(PIN_SW_BT2,INPUT_PULLUP); //Joystic Sw Setup
+ pinMode(PIN_SW_BT3,INPUT_PULLUP); //Joystic Sw Setup
+ pinMode(PIN_SW_BT4,INPUT_PULLUP); //Joystic Sw Setup
+ pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
+
  //digitalWrite(stateSW_JR,HIGH);
 
   //steppers.addStepper(stepper2);
@@ -467,6 +473,9 @@ void handleStopStateEvents()
  
         stepperY.setMaxSpeed(2*abs(posJRy));
         stepperX.setMaxSpeed(2*abs(posJRx));
+        stepperZ.setMaxSpeed(1000);
+        stepperP.setMaxSpeed(1000);
+
         
         if (abs(posJRy) > 10)
         {
@@ -479,10 +488,36 @@ void handleStopStateEvents()
            stepperX.move(posJRx);
          else
            stepperX.move(0);
+
+        if (stateSW_BT1 == 1)
+           stepperZ.move(-400);
+         //else
            
-         if (stateSW_JR == 1){ //Click So Save New Position
+        if (stateSW_BT4 == 1)
+           stepperZ.move(400);
+         //else
+           //stepperZ.move(0);
+
+        if(stateSW_BT1==0 && stateSW_BT4 == 0)
+           stepperZ.move(0);
+
+        if (stateSW_BT2 == 1)
+           stepperP.move(-300);
+
+        if (stateSW_BT5 == 1)
+           stepperP.move(300);
+
+         if(stateSW_BT2==0 && stateSW_BT5 == 0)
+           stepperP.move(0);
+
+        if (stateSW_JR == 1){ //Click So Save New Position
             nextState = SAVE_POSITION;
          }
+
+        if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+            nextState = TEST_RUN;
+         }
+
            
       break;
 
@@ -592,7 +627,7 @@ void handleStartStateEvents()
       case JOYSTICK:
           systemState = JOYSTICK;
           
-          stateTimeOut =  millis()+15000; //With timeout
+          stateTimeOut =  millis()+65000; //With timeout
       
       break;
 
@@ -878,5 +913,11 @@ void readJoystick()
   posJRx       = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
   posJRy       = analogRead(PIN_AJR_Y)-531;
   stateSW_JR    = 1-(int)digitalRead(PIN_SW_JR);  //Invert So it Behaves like the limit SW
+  stateSW_BT1    = 1-(int)digitalRead(PIN_SW_BT1);  //Invert So it Behaves like the limit SW
+  stateSW_BT2    = 1-(int)digitalRead(PIN_SW_BT2);  //Invert So it Behaves like the limit SW
+  stateSW_BT3    = 1-(int)digitalRead(PIN_SW_BT3);  //Invert So it Behaves like the limit SW
+  stateSW_BT4    = 1-(int)digitalRead(PIN_SW_BT4);  //Invert So it Behaves like the limit SW
+  stateSW_BT5    = 1-(int)digitalRead(PIN_SW_BT5);  //Invert So it Behaves like the limit SW
+
 }
 
