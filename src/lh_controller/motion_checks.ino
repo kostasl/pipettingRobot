@@ -1,0 +1,163 @@
+
+/*
+ * Functions Checking Motor Motion limit switches and events
+ */
+//Return >0 if all positions at home
+int checkHoming()
+{
+  int iret = 0;
+  
+  //Read Switches Home Reached
+  
+  //stateSW_XR =  //digitalRead(PIN_SW_XR);
+  //stateSW_YB = digitalRead(PIN_SW_YB);
+//  stateSW_ZT = digitalRead(PIN_SW_ZT);
+//  stateSW_PB = digitalRead(PIN_SW_PB);
+
+  display.setTextColor (WHITE,BLACK); // 'inverted' text
+    
+   
+   if (btn_XR_lim.onPressed())
+   {
+      
+        stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
+        stepperX.stop();
+        display.setCursor(0,45);
+        display.println("X ON");
+        display.display();
+     }
+
+    if (btn_XR_lim.isPressed() )
+    {
+       iret++; //Increment Number of Switches pressed 
+       if (stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
+        {
+           stepperX.moveTo(1);
+           stepperX.stop();
+       }
+    }
+    
+    
+    if (btn_YB_lim.onPressed()) //Triggered Once When State Changes to pressed
+    {      
+        stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
+        stepperY.stop(); //Just in case future vers change the above
+        display.setCursor(0,57);
+        display.println("Y ON");
+        display.display();
+    }
+      
+    if (btn_YB_lim.isPressed())
+    {
+      iret++; //Increment Number of Switches pressed 
+      if (stepperY.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperY.moveTo(1);
+          stepperY.stop();
+      }
+    }
+
+    if (btn_ZT_lim.onPressed())
+    {
+      //    
+      stepperZ.setCurrentPosition(0);
+      stepperZ.stop();
+      stepperZ.setSpeed(0);
+      display.setCursor(50,45);
+      display.println("Z ON");
+      display.display();
+    }
+    
+    if (btn_ZT_lim.isPressed())
+    {
+      iret++; //Increment Number of Switches pressed 
+
+      if (stepperZ.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperZ.moveTo(1);
+          stepperZ.stop();
+  
+      }
+    }
+
+    
+    if (btn_PB_lim.onPressed())
+    {
+
+        stepperP.setCurrentPosition(0);
+        stepperP.setSpeed(0);
+        stepperP.stop();
+        display.setCursor(50,57);
+        display.println("P ON");
+        display.display();
+    }
+
+    if (btn_PB_lim.isPressed() )
+    {
+      iret++; //Increment Number of Switches pressed 
+
+      if (stepperP.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      {
+          stepperP.moveTo(1);
+          stepperP.stop();
+  
+      }
+    }
+
+
+  return iret;
+}
+
+// Out Of Range Control
+//Check if Carrriege has reached the  Switches at the limit Of Axis opposite of Home - 
+// Returns : Number of limit Switches Hit
+int checkOutOfRange()
+{
+  int iret = 0;
+
+  if (btn_XL_lim.onPressed())
+  {
+        stepperX.setSpeed(0);
+        display.setCursor(0,45);
+        display.println("X ON");
+        display.display();
+  }
+  if (btn_XL_lim.isPressed())
+  {
+      //Do not allow to push against the switch
+        if (stepperX.targetPosition() - stepperX.currentPosition() > 0)
+        {
+         stepperX.setSpeed(0);
+         stepperX.moveTo(stepperX.currentPosition());
+         stepperX.stop(); //Just in case future vers change the above
+        }
+      
+    iret++;
+  } 
+  
+  if (btn_YF_lim.onPressed())
+  {
+        stepperY.setSpeed(0);//Just in case future vers change the above
+        display.setCursor(0,57);
+        display.println("Y ON");
+        display.display(); //These Calls CAuse jitter
+  }
+  if (btn_YF_lim.isPressed())
+  {
+        //Do not allow to push against the switch
+        if (stepperY.targetPosition() - stepperY.currentPosition() > 0)
+        {
+           stepperY.moveTo(stepperY.currentPosition());
+           stepperY.stop(); //Just in case future vers change the above
+        }
+
+  
+    iret++;
+  }
+
+//Return The number of Switches Pressed
+return iret;
+}
+
+
+
