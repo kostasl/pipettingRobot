@@ -104,10 +104,11 @@ void dispState()
 
       case SAVE_POSITION:
         display.setCursor(0,11);
-        display.print(iposSaveIndex);
-        display.println(" POSITION \n \t SAVED");
+        sprintf(buff," %d Saved", iposSaveIndex);
+        display.println(buff);
         display.setFont();
-        sprintf(buff,"i: %d X:%ld Y:%ld \n   Z:%ld,P:%ld ", iposSaveIndex,savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
+        sprintf(buff,"X:%ld \t Y:%ld \nZ:%ld  \t P:%ld",savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
+
         display.println(buff);
         
       break;

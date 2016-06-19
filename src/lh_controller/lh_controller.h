@@ -72,14 +72,30 @@ RBD::Button btn_JR_lim(PIN_SW_JR); //Joystic Button Press
 // Up to 10 steppers can be handled as a group by MultiStepper
 
 // Defines a target position to which the robot will move into - Coords defined as stepper positions
-typedef struct {
-  long  Xpos;
-  long  Ypos;
-  long  Zpos;
-  long  Ppos;  
-} t_position; 
+struct list_position {
+  int     seqID;//Id In Position Sequence
+  long    Xpos;
+  long    Ypos;
+  long    Zpos;
+  long    Ppos;
+  struct list_position  *epomPos; //Next Position   - Null Means  this Final Position
+}; 
 
-t_position savedPositions[MAX_POSITIONS];
+typedef struct list_position prog_position;
+
+typedef struct {
+  uint16_t ID;
+  uint8_t posCount; //Number of positions
+  uint8_t repsRemain; //Defines remaining Number of repetitions during a run
+  char progname[15]; //The program Name
+  char timestamp[10]; //Last Mod Date
+  list_position* protoPos;
+} t_program;
+
+
+list_position savedPositions[MAX_POSITIONS];
+t_program savedPrograms[MAX_POSITIONS]; //Array Of Saved Programs
+
 int iposSaveIndex = 0; // Index Of last position saved on this program  
 int iposCurrentIndex =0; //Index Of currently running position of program
 

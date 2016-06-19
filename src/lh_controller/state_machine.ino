@@ -247,27 +247,31 @@ void handleStartStateEvents()
       break;
 
       case SAVE_POSITION: //Add Current Position TO list Of Saved positions
-            //stepperX.stop();
-            //stepperY.stop();   
-            //stepperZ.stop();
-            //stepperP.stop();
-               
-            savedPositions[iposSaveIndex].Xpos = stepperX.currentPosition();
-            savedPositions[iposSaveIndex].Ypos = stepperY.currentPosition();
-            savedPositions[iposSaveIndex].Zpos = stepperZ.currentPosition();
-            savedPositions[iposSaveIndex].Ppos = stepperP.currentPosition();
-          
+      { //Need the Brackets To bypass C restriction on newpos initialization
+            iposSaveIndex++;
+            //Create New Position Struct
+            prog_position* newpos = new prog_position;
+            //savedPositions[iposSaveIndex]   
+            newpos->Xpos = stepperX.currentPosition();
+            newpos->Ypos = stepperY.currentPosition();
+            newpos->Zpos = stepperZ.currentPosition();
+            newpos->Ppos = stepperP.currentPosition();
+
+            //savedPositions[iposSaveIndex-1].epomPos = newpos;
+            savedPositions[iposSaveIndex] = *newpos;
             //char buff[130];
             sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", iposSaveIndex,savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
             Serial.println(buff);
 
-            iposSaveIndex++;
-            
+            free(newpos);
             dispState();
             display.display();
 
             
+
+            
             systemState = SAVE_POSITION;
+      }
       break;
 
       case RESET:

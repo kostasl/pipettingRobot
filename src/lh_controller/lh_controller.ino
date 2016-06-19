@@ -128,14 +128,20 @@ void setup() {
   steppers.addStepper(stepperP);
 
 
-
+//CAn Use Debounce RDB Buttons Here TOo
  pinMode(PIN_SW_BT1,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT2,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT3,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT4,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
 
-
+//Set SW  Debounce To longer - Avoid Noisy Signals.
+btn_PB_lim.setDebounceTimeout(20);
+btn_ZT_lim.setDebounceTimeout(20);
+btn_YB_lim.setDebounceTimeout(20);
+btn_YF_lim.setDebounceTimeout(20);
+btn_XR_lim.setDebounceTimeout(20);
+btn_XL_lim.setDebounceTimeout(20);
 
   //Load Saved Positions
 
