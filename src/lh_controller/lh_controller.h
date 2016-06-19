@@ -43,6 +43,8 @@
 #define PIN_SW_ZT          31
 #define PIN_SW_PB          33
 
+#define LH_MIN_JOY_MOVE    20 //Minimum Joystick Reading Before Moving Motor
+
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
 RBD::Button btn_XR_lim(PIN_SW_XR);

@@ -2,6 +2,8 @@
 /*
  * Functions Checking Motor Motion limit switches and events
  */
+
+ 
 //Return >0 if all positions at home
 int checkHoming()
 {
@@ -15,15 +17,16 @@ int checkHoming()
 //  stateSW_PB = digitalRead(PIN_SW_PB);
 
   display.setTextColor (WHITE,BLACK); // 'inverted' text
-    
+  display.setFont(); //Revert To Standart Font
+ 
    
    if (btn_XR_lim.onPressed())
    {
       
         stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
         stepperX.stop();
-        display.setCursor(0,45);
-        display.println("X ON");
+        display.setCursor(0,disp_LOW_LINE);
+        display.print("X ON");
         display.display();
      }
 
@@ -42,8 +45,8 @@ int checkHoming()
     {      
         stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
         stepperY.stop(); //Just in case future vers change the above
-        display.setCursor(0,57);
-        display.println("Y ON");
+        display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
+        display.print("Y ON");
         display.display();
     }
       
@@ -63,8 +66,8 @@ int checkHoming()
       stepperZ.setCurrentPosition(0);
       stepperZ.stop();
       stepperZ.setSpeed(0);
-      display.setCursor(50,45);
-      display.println("Z ON");
+      display.setCursor(disp_LIM_SPACING*2,disp_LOW_LINE);
+      display.print("Z ON");
       display.display();
     }
     
@@ -87,8 +90,8 @@ int checkHoming()
         stepperP.setCurrentPosition(0);
         stepperP.setSpeed(0);
         stepperP.stop();
-        display.setCursor(50,57);
-        display.println("P ON");
+        display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
+        display.print("P ON");
         display.display();
     }
 
@@ -118,8 +121,8 @@ int checkOutOfRange()
   if (btn_XL_lim.onPressed())
   {
         stepperX.setSpeed(0);
-        display.setCursor(0,45);
-        display.println("X ON");
+        display.setCursor(0,disp_LOW_LINE);
+        display.print("X ON");
         display.display();
   }
   if (btn_XL_lim.isPressed())
@@ -127,7 +130,6 @@ int checkOutOfRange()
       //Do not allow to push against the switch
         if (stepperX.targetPosition() - stepperX.currentPosition() > 0)
         {
-         stepperX.setSpeed(0);
          stepperX.moveTo(stepperX.currentPosition());
          stepperX.stop(); //Just in case future vers change the above
         }
@@ -138,8 +140,8 @@ int checkOutOfRange()
   if (btn_YF_lim.onPressed())
   {
         stepperY.setSpeed(0);//Just in case future vers change the above
-        display.setCursor(0,57);
-        display.println("Y ON");
+        display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
+        display.print("Y ON");
         display.display(); //These Calls CAuse jitter
   }
   if (btn_YF_lim.isPressed())

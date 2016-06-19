@@ -4,8 +4,16 @@
  * Functions handle display output relative to current state
  */
 
+ 
+ const int disp_LIM_SPACING = 33; //Spacing required for Displaying X ON switches Text - Can use display.getTextBounds for this .getTextBounds(string, x, y, &y1, &y1, &w, &h);
+ const int disp_LOW_LINE = 57;
+ 
+
 void dispWelcome()
 {
+    display.setFont(&FreeMono9pt7b);
+    //display.setTextSize(1);
+
     // Clear the buffer.
   // miniature bitmap display
   display.clearDisplay();
@@ -22,6 +30,10 @@ void dispWelcome()
 
 }
 
+
+/*
+ * 
+ */
 //Show Text Relating to the Current System System STATE
 void dispState()
 {
@@ -29,6 +41,7 @@ void dispState()
   // miniature bitmap display
   display.clearDisplay();
   //display.stopscroll();
+  display.setFont(&FreeMono9pt7b);
   display.setTextColor( WHITE,BLACK); // 'inverted' text
   display.setTextSize(1);
 
@@ -54,9 +67,7 @@ void dispState()
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
         display.setCursor(0,28);
-
         display.println(" -Home-");
-       
       break;
 
       case HOMING:
@@ -64,6 +75,7 @@ void dispState()
         //display.setCursor(0,20);
         display.setCursor(0,11);
         display.println("-Homing->");
+
         //display.startscrollright(0x00, 0x0F);
       break;
       
@@ -94,6 +106,9 @@ void dispState()
         display.setCursor(0,11);
         display.print(iposSaveIndex);
         display.println(" POSITION \n \t SAVED");
+        display.setFont();
+        sprintf(buff,"i: %d X:%ld Y:%ld \n   Z:%ld,P:%ld ", iposSaveIndex,savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
+        display.println(buff);
         
       break;
 
@@ -107,30 +122,21 @@ void dispState()
       break;
     }
   
-       //Clear Screen On Swithc
-        display.setCursor(0,45);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("X ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
- 
-      //Clear Screen On Swithc
-        display.setCursor(0,57);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("Y ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
- 
-      //Clear Screen On Swithc
-        display.setCursor(50,45);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("Z ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
- 
-      //Clear Screen On Swithc
-        display.setCursor(50,57);
-        display.setTextColor (BLACK,WHITE); // 'inverted' text
-        display.print("P ON");
-        display.setTextColor (WHITE,BLACK); // 'inverted' text
- 
+      ////Clear The Switch Status - Clear Screen On Swithc
+        //display.setFont(); //Revert To Standart Font
+      if (!(btn_XR_lim.isPressed() || btn_XL_lim.isPressed()))
+          display.fillRect(0,disp_LOW_LINE,disp_LIM_SPACING,19,BLACK);
+
+      if (!(btn_YB_lim.isPressed() || btn_YB_lim.isPressed()) )
+          display.fillRect(disp_LIM_SPACING,disp_LOW_LINE,disp_LIM_SPACING,19,BLACK);
+
+      if (!(btn_ZT_lim.isPressed()) )
+          display.fillRect(disp_LIM_SPACING*2,disp_LOW_LINE,disp_LIM_SPACING,19,BLACK);
+      
+      if (!(btn_PB_lim.isPressed()) )
+          display.fillRect(disp_LIM_SPACING*3,disp_LOW_LINE,disp_LIM_SPACING,19,BLACK);
+      
+
   
   //display.display();
 

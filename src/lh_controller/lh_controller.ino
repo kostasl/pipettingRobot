@@ -42,7 +42,10 @@
 #include <Adafruit_GFX.h>
 //#include <gfxfont.h>
 #include <Adafruit_SSD1325.h>
+//#include <Fonts/FreeMono7pt7b.h>
+//#include <Fonts/FreeMono8pt7b.h>
 #include <Fonts/FreeMono9pt7b.h>
+
 //#include <FreeSerifItalic9pt7b.h>
 
 //For Switch Debouncing
@@ -60,7 +63,7 @@
 // Called Once on startup(after reset) for initialization //
 void setup() {
   Serial.begin(9600);
-  Serial.print("* Liquid Handler Controller Initializing \n");
+  Serial.print(F("* Liquid Handler Controller Initializing \n"));
   inputString.reserve(100);
   
   //DISPLAY/
@@ -68,23 +71,21 @@ void setup() {
   //display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
   display.begin();
   delay(50);
-  //display.setFont(&FreeSerifItalic9pt7b);
-  display.setFont(&FreeMono9pt7b);
-
+  
   Serial.print(F("*Set Welcome Screen * \n"));
   dispWelcome();
 
   delay(1500);
   display.clearDisplay();
   display.display();
-  Serial.print("*Done * \n");
+  Serial.print(F("*Done * \n"));
 
   
   // Configure each stepper
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
   stepperX.setCurrentPosition(0);  
-  stepperX.setMaxSpeed(1500);
+  //stepperX.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperX);
@@ -93,7 +94,7 @@ void setup() {
   stepperY.setPinsInverted(true,true,true);
   stepperY.setCurrentPosition(0);
  	
-  stepperY.setMaxSpeed(1500);
+  //stepperY.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperY);
@@ -102,7 +103,7 @@ void setup() {
   stepperZ.setPinsInverted(true,true,true);
   stepperZ.setCurrentPosition(0);
   
-  stepperZ.setMaxSpeed(2000);
+  //stepperZ.setMaxSpeed(2000);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperZ);
@@ -111,37 +112,23 @@ void setup() {
   stepperP.setPinsInverted(false,true,true); //Not Inverting Direction - +ve are towards Home Switches
   stepperP.setCurrentPosition(0);
    	
-  stepperP.setMaxSpeed(1000);
+  //stepperP.setMaxSpeed(1000);
   
   
-  stepperX.setAcceleration(1500); 
-  stepperY.setAcceleration(1500); 	
-  stepperZ.setAcceleration(2500); 	
-  stepperP.setAcceleration(1500);
-
+ // stepperX.setAcceleration(1500); 
+ // stepperY.setAcceleration(1500); 	
+ // stepperZ.setAcceleration(2500); 	
+ // stepperP.setAcceleration(1500);
+//Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
+  reset();
   
   
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   steppers.addStepper(stepperP);
 
- // steppers.moveTo(positions);
-  //steppers.runSpeedToPosition(); // Blocks until all are in position
-  //stepperX.moveTo(positions[0]);
-  //stepperY.moveTo(positions[1]);
-  //stepperZ.moveTo(positions[2]);
-  //stepperP.moveTo(positions[3]);
 
- 
- //Setup Buttons
- //pinMode(PIN_SW_XL,INPUT_PULLUP);
- //pinMode(PIN_SW_XR,INPUT_PULLUP);
- //pinMode(PIN_SW_YF,INPUT_PULLUP);
- //pinMode(PIN_SW_YB,INPUT_PULLUP);
- //pinMode(PIN_SW_ZT,INPUT_PULLUP);
- //pinMode(PIN_SW_PB,INPUT_PULLUP);
- //pinMode(PIN_SW_JR,INPUT_PULLUP); //Joystic Sw Setup
- 
+
  pinMode(PIN_SW_BT1,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT2,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT3,INPUT_PULLUP); //Joystic Sw Setup
@@ -149,13 +136,8 @@ void setup() {
  pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
 
 
- //digitalWrite(stateSW_JR,HIGH);
-
-  //steppers.addStepper(stepper2);
 
   //Load Saved Positions
-  //Empty Target Array
-  memset(savedPositions,0,sizeof(savedPositions));
 
   //savedPositions[0] = (t_position)800,800,200,100};
   iposSaveIndex = 0; //pos to save next Pos;
@@ -190,6 +172,7 @@ void loop() {
   
 
 
+
 if (nextState != systemState)
 {
      handleStartStateEvents();
@@ -200,11 +183,15 @@ else
     //Add State Events Events In Following function
     handleStopStateEvents();
  
-   
+
   //Check Limit Switch sensors and Stop Motion If needed Stop
   checkHoming();
+  //if (systemState != HOMING) //If LimitOut SW are pressed Speed is set to 0/ So dont do this when homing
   checkOutOfRange();
+    
   readJoystick();
+
+
 
 
 
@@ -248,7 +235,20 @@ else
 
 void reset()
 {
+
   memset(savedPositions,0,sizeof(savedPositions));
+
+
+  stepperX.setMaxSpeed(1500);
+  stepperY.setMaxSpeed(1500);
+  stepperZ.setMaxSpeed(2000);
+  stepperP.setMaxSpeed(1000);
+
+  stepperX.setAcceleration(1500); 
+  stepperY.setAcceleration(1500);   
+  stepperZ.setAcceleration(2500);   
+  stepperP.setAcceleration(1500);
+
 
   //savedPositions[0] = (t_position)800,800,200,100};
   iposSaveIndex = 0; //pos to save next Pos;

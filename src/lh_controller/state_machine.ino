@@ -90,14 +90,14 @@ void handleStopStateEvents()
 
 
         
-        if (abs(posJRy) > 10)
+        if (abs(posJRy) > LH_MIN_JOY_MOVE)
         {
          stepperY.move(posJRy);
         }
         else
           stepperY.move(0);
           
-        if (abs(posJRx) > 10)
+        if (abs(posJRx) > LH_MIN_JOY_MOVE)
            stepperX.move(posJRx);
          else
            stepperX.move(0);
@@ -173,12 +173,8 @@ void handleStartStateEvents()
       break;
       
       case HOMING:
-        stepperX.setAcceleration(1500); 
-        stepperY.setAcceleration(1500);   
-        stepperZ.setAcceleration(1500);
-        stepperZ.setMaxSpeed(2000);   
-        stepperP.setAcceleration(1500);
 
+        reset(); //Reset Motor Speeds / Accell
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
         stepperZ.moveTo(-20000);
