@@ -39,6 +39,8 @@
 //Headers for Screen Adafruit OLED  Monochrome OLEDs based on SSD1306 drivers 
 #include <Wire.h>
 #include <SPI.h>
+#include <SD.h>
+
 #include <Adafruit_GFX.h>
 //#include <gfxfont.h>
 #include <Adafruit_SSD1325.h>
@@ -58,6 +60,9 @@
 #if (SSD1325_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
+
+//
+File fileroot;
 
 
 // Called Once on startup(after reset) for initialization //
@@ -135,6 +140,8 @@ void setup() {
  pinMode(PIN_SW_BT4,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
 
+ pinMode(PIN_CS_SDCARD,OUTPUT); //Set To it must be left as an output or the SD library won't work.
+
 //Set SW  Debounce To longer - Avoid Noisy Signals.
 btn_PB_lim.setDebounceTimeout(20);
 btn_ZT_lim.setDebounceTimeout(20);
@@ -148,7 +155,23 @@ btn_XL_lim.setDebounceTimeout(20);
   //savedPositions[0] = (t_position)800,800,200,100};
   iposSaveIndex = 0; //pos to save next Pos;
   iposCurrentIndex=0;
-}
+
+///SD Card Init
+
+  Serial.print("Initializing SD card...");
+
+  if (!SD.begin(53)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+
+  fileroot = SD.open("/");
+
+  printDirectory(fileroot, 0);
+
+} //End Of Setup
 
 
 

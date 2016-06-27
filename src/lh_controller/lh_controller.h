@@ -8,6 +8,7 @@
 
 //  PIN DEFINITIONS //
 
+
 #define PIN_MOTOR_P_EN    2 //Pipette drive
 #define PIN_MOTOR_P_STEP  3
 #define PIN_MOTOR_P_DIR   4
@@ -34,6 +35,7 @@
 #define PIN_SW_BT4        44 //JoyStick BTN 1 PushSwitch
 #define PIN_SW_BT5        46 //JoyStick BTN 1 PushSwitch
 
+#define PIN_CS_SDCARD     53 //Chipselect for SD Card 
 
 //Limit Switches - X and Y axes have on both sides -Mounted On Header PINS
 #define PIN_SW_YB          23
