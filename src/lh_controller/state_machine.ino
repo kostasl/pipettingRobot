@@ -103,11 +103,19 @@ void handleStopStateEvents()
            stepperX.move(0);
 
         if (stateSW_BT1 == 1)
-           stepperZ.move(-800); //Up Z Axis
+        {
+           stepperZ.move(-1000); //Up Z Axis
+//           display.setCursor(0,0);
+//           display.println("Z Up");
+//           display.display();
+        }
          //else
            
         if (stateSW_BT4 == 1) //Down Z Axis
-           stepperZ.move(800);
+        {
+           stepperZ.move(1000);
+
+        }
          //else
            //stepperZ.move(0);
 

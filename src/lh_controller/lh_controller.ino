@@ -80,7 +80,6 @@ void setup() {
   Serial.print(F("*Set Welcome Screen * \n"));
   dispWelcome();
 
-  delay(1500);
   display.clearDisplay();
   display.display();
   Serial.print(F("*Done * \n"));
