@@ -198,7 +198,7 @@ void handleStartStateEvents()
        stepperX.runToNewPosition(50);
        stepperY.runToNewPosition(50);
        stepperZ.runToNewPosition(100);
-       stepperP.runToNewPosition(4500);
+       stepperP.runToNewPosition(2500);
 //
 //        stepperX.stop();
 //        stepperY.stop();
@@ -214,7 +214,7 @@ void handleStartStateEvents()
         
         systemState = HOME;
         
-        stateTimeOut =  millis() + 3000; //No timeout
+        stateTimeOut =  millis() + 3000; 
       break;
       
 
@@ -229,16 +229,23 @@ void handleStartStateEvents()
         stepperZ.setMaxSpeed(2000);
         stepperP.setMaxSpeed(2000);
 
-        
-        stepperX.moveTo(savedPositions[iposCurrentIndex].Xpos); 
-        stepperY.moveTo(savedPositions[iposCurrentIndex].Ypos);
-        stepperZ.moveTo(savedPositions[iposCurrentIndex].Zpos);
-        stepperP.moveTo(savedPositions[iposCurrentIndex].Ppos);
+        list_position* nxtpos;
+        nxtpos = savedPrograms[0].currPos;
+                  
+        stepperX.moveTo(nxtpos->Xpos); 
+        stepperY.moveTo(nxtpos->Ypos);
+        stepperZ.moveTo(nxtpos->Zpos);
+        stepperP.moveTo(nxtpos->Ppos);
 
+        sprintf(buff,"Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
+        ////INcrement tonext Position  if not at end
+        if (savedPrograms[0].currPos != savedPrograms[0].telosPos)   
+        {
+          savedPrograms[0].currPos = nxtpos->epomPos; //Change pointer to next Pos
+        }
 
-        sprintf(buff,"Run to Pos i:%d, X:%ld, Y:%ld,Z:%ld,P:%ld ",iposCurrentIndex, savedPositions[iposCurrentIndex].Xpos,savedPositions[iposCurrentIndex].Ypos,savedPositions[iposCurrentIndex].Zpos,savedPositions[iposCurrentIndex].Ppos);
         Serial.println(buff);
-        stateTimeOut =  0; //No timeout
+        stateTimeOut =  millis()  + 10000; //Give 10sec timeout until move executes
         systemState = TEST_RUN;
       break;
       
@@ -266,9 +273,15 @@ void handleStartStateEvents()
             newpos->Ppos = stepperP.currentPosition();
 
             //savedPositions[iposSaveIndex-1].epomPos = newpos;
-            savedPositions[iposSaveIndex] = *newpos;
+            //savedPositions[iposSaveIndex] = *newpos;
+            savedPrograms[0].telosPos->epomPos = newpos;
+            savedPrograms[0].telosPos          = newpos; //Update That Last Pos Is this new pos
+            
+            newpos->seqID = savedPrograms[0].posCount;
+            savedPrograms[0].posCount++;
+            
             //char buff[130];
-            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", iposSaveIndex,savedPositions[iposSaveIndex].Xpos, savedPositions[iposSaveIndex].Ypos, savedPositions[iposSaveIndex].Zpos,savedPositions[iposSaveIndex].Ppos );
+            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0].posCount, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
             free(newpos);

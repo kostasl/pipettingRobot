@@ -30,7 +30,8 @@
 // 10/6/16 Added Learning pos sequence via joystic - and replay- Note sometimes sequence run stops and needs to issue SST 4 again
 // 12/06/12 Added Switch debouncing - Handling of 5 extra controller/joystick buttons for learning pos. 
    Problems To FIX:Jitter/drift on Y axis backwards,Z axis sometimes does not home completely thus zero position misplaced causes crash through tip holder!
-
+  27/06/16 Added Support for SD Card
+  03/07/16 There are issues with replay positionioning especially for P, Need to stop it from exceeding upper limit (where there is no switch - limit to steps 3500 / or add physical Sw)
 */
 
 #include <AccelStepper.h>
@@ -92,7 +93,7 @@ void setup() {
   //stepperX.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
-  steppers.addStepper(stepperX);
+  //steppers.addStepper(stepperX);
 
   stepperY.setEnablePin(PIN_MOTOR_Y_EN);
   stepperY.setPinsInverted(true,true,true);
@@ -101,7 +102,7 @@ void setup() {
   //stepperY.setMaxSpeed(1500);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
-  steppers.addStepper(stepperY);
+  //steppers.addStepper(stepperY);
 
   stepperZ.setEnablePin(PIN_MOTOR_Z_EN);
   stepperZ.setPinsInverted(true,true,true);
@@ -110,7 +111,7 @@ void setup() {
   //stepperZ.setMaxSpeed(2000);
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
-  steppers.addStepper(stepperZ);
+  //steppers.addStepper(stepperZ);
 
   stepperP.setEnablePin(PIN_MOTOR_P_EN);
   stepperP.setPinsInverted(false,true,true); //Not Inverting Direction - +ve are towards Home Switches
@@ -129,7 +130,7 @@ void setup() {
   
   //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
-  steppers.addStepper(stepperP);
+  //steppers.addStepper(stepperP);
 
 
 //CAn Use Debounce RDB Buttons Here TOo
@@ -171,8 +172,6 @@ btn_XL_lim.setDebounceTimeout(20);
   printDirectory(fileroot, 0);
 
 } //End Of Setup
-
-
 
 
 
@@ -265,6 +264,19 @@ void reset()
 {
 
   memset(savedPositions,0,sizeof(savedPositions));
+
+  //Create 1st Position
+  prog_position* newpos = new prog_position;
+  //savedPositions[iposSaveIndex]   
+  newpos->Xpos  = 0;
+  newpos->Ypos  = 0;
+  newpos->Zpos  = 0;
+  newpos->Ppos  = 2500;
+  newpos->seqID = 0;
+  savedPrograms[0].protoPos = newpos; //First Position
+  savedPrograms[0].currPos = newpos; //Current Position
+  savedPrograms[0].telosPos = newpos; //Last Position
+  
 
 
   stepperX.setMaxSpeed(1500);

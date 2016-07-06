@@ -92,6 +92,9 @@ typedef struct {
   char progname[15]; //The program Name
   char timestamp[10]; //Last Mod Date
   list_position* protoPos;
+  list_position* currPos;
+  list_position* telosPos;
+  
 } t_program;
 
 
@@ -107,7 +110,7 @@ AccelStepper stepperY(AccelStepper::DRIVER,PIN_MOTOR_Y_STEP,PIN_MOTOR_Y_DIR); //
 AccelStepper stepperZ(AccelStepper::DRIVER,PIN_MOTOR_Z_STEP,PIN_MOTOR_Z_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 
-MultiStepper steppers;
+//MultiStepper steppers; -Not Currently Used - Needs to be customized
 
 ///Screen Vars   
 //Adafruit_SSD1306 display(OLED_RESET);

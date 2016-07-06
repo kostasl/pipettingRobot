@@ -107,6 +107,15 @@ int checkHoming()
       }
     }
 
+    //Other Limit Is 3500 Tix Brings it to the upper lim
+
+    if (stepperP.currentPosition()> 3500)
+    {
+          stepperP.moveTo(3500);
+          stepperP.stop();
+    }
+
+    
 
   return iret;
 }
