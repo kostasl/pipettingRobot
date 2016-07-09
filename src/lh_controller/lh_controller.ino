@@ -114,7 +114,7 @@ void setup() {
   //steppers.addStepper(stepperZ);
 
   stepperP.setEnablePin(PIN_MOTOR_P_EN);
-  stepperP.setPinsInverted(false,true,true); //Not Inverting Direction - +ve are towards Home Switches
+  stepperP.setPinsInverted(true,true,true); //Not Inverting Direction - +ve are towards Home Switches
   stepperP.setCurrentPosition(0);
    	
   //stepperP.setMaxSpeed(1000);
@@ -143,12 +143,12 @@ void setup() {
  pinMode(PIN_CS_SDCARD,OUTPUT); //Set To it must be left as an output or the SD library won't work.
 
 //Set SW  Debounce To longer - Avoid Noisy Signals.
-btn_PB_lim.setDebounceTimeout(20);
-btn_ZT_lim.setDebounceTimeout(20);
-btn_YB_lim.setDebounceTimeout(20);
-btn_YF_lim.setDebounceTimeout(20);
-btn_XR_lim.setDebounceTimeout(20);
-btn_XL_lim.setDebounceTimeout(20);
+btn_PB_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
+btn_ZT_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
+btn_YB_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
+btn_YF_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
+btn_XR_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
+btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
 
   //Load Saved Positions
 
@@ -156,7 +156,7 @@ btn_XL_lim.setDebounceTimeout(20);
   iposSaveIndex = 0; //pos to save next Pos;
   iposCurrentIndex=0;
 
-///SD Card Init
+///SD Card Init /cHIP Select is on 53 (which is also the SPI default)
 
   Serial.print("Initializing SD card...");
 
@@ -166,18 +166,16 @@ btn_XL_lim.setDebounceTimeout(20);
   }
   Serial.println("initialization done.");
 
-
   fileroot = SD.open("/");
 
   printDirectory(fileroot, 0);
-
+  fileroot.close();
 } //End Of Setup
 
 
 
 void loop() {
   
-
   //Serial.println(stateButton,DEC); 
   //delay(20);
   
@@ -192,13 +190,8 @@ void loop() {
    nextState = IDLE;
   }
 
-
-
 //  if (nextState != systemState)
      //First Do Start Event Handling, because on these events some motor States may be set
-  
-
-
 
 if (nextState != systemState)
 {
@@ -217,9 +210,6 @@ else
   checkOutOfRange();
     
   readJoystick();
-
-
-
 
 
 
@@ -271,12 +261,14 @@ void reset()
   newpos->Xpos  = 0;
   newpos->Ypos  = 0;
   newpos->Zpos  = 0;
-  newpos->Ppos  = 2500;
+  newpos->Ppos  = -2500;
   newpos->seqID = 0;
+
+  savedPrograms[0].posCount = 1; //First Default Position Saved
   savedPrograms[0].protoPos = newpos; //First Position
-  savedPrograms[0].currPos = newpos; //Current Position
+  savedPrograms[0].epiPos   = newpos; //Current Position
   savedPrograms[0].telosPos = newpos; //Last Position
-  
+  strcpy(savedPrograms[0].progname,"EOS.PRG"); //Name of 1st Program
 
 
   stepperX.setMaxSpeed(1500);

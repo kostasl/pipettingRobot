@@ -47,6 +47,8 @@
 
 #define LH_MIN_JOY_MOVE    20 //Minimum Joystick Reading Before Moving Motor
 
+#define BTN_DEBOUNCE_TIMEMS 40 //DEbounce of LImit Switches in ms
+
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
 RBD::Button btn_XR_lim(PIN_SW_XR);
@@ -75,11 +77,11 @@ RBD::Button btn_JR_lim(PIN_SW_JR); //Joystic Button Press
 
 // Defines a target position to which the robot will move into - Coords defined as stepper positions
 struct list_position {
-  int     seqID;//Id In Position Sequence
-  long    Xpos;
-  long    Ypos;
-  long    Zpos;
-  long    Ppos;
+  uint16_t    seqID;//Id In Position Sequence
+  long        Xpos;
+  long        Ypos;
+  long        Zpos;
+  long        Ppos;
   struct list_position  *epomPos; //Next Position   - Null Means  this Final Position
 }; 
 
@@ -87,12 +89,12 @@ typedef struct list_position prog_position;
 
 typedef struct {
   uint16_t ID;
-  uint8_t posCount; //Number of positions
+  uint16_t posCount; //Number of positions
   uint8_t repsRemain; //Defines remaining Number of repetitions during a run
   char progname[15]; //The program Name
   char timestamp[10]; //Last Mod Date
   list_position* protoPos;
-  list_position* currPos;
+  list_position* epiPos;
   list_position* telosPos;
   
 } t_program;
@@ -101,8 +103,8 @@ typedef struct {
 list_position savedPositions[MAX_POSITIONS];
 t_program savedPrograms[MAX_POSITIONS]; //Array Of Saved Programs
 
-int iposSaveIndex = 0; // Index Of last position saved on this program  
-int iposCurrentIndex =0; //Index Of currently running position of program
+int iposSaveIndex     = 0; // Index Of last position saved on this program  
+int iposCurrentIndex  = 0; //Index Of currently running position of program
 
 
 AccelStepper stepperX(AccelStepper::DRIVER,PIN_MOTOR_X_STEP,PIN_MOTOR_X_DIR); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
@@ -118,7 +120,7 @@ AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); //
 Adafruit_SSD1325 display(OLED_DC, OLED_RESET, OLED_CS);
 
 ///STATE Variables
-enum ENUM_LH_STATE {IDLE=1,HOMING=2,HOME=3,TEST_RUN=4,MOVING=5,JOYSTICK=6,SAVE_POSITION=7,RESET=8,LAST_STATE=9};
+enum ENUM_LH_STATE {IDLE=1, HOMING=2, HOME=3, TEST_RUN=4, MOVING=5, JOYSTICK=6, SAVE_POSITION=7, LOAD_PROGRAM=8, SAVE_PROGRAM=9, RESET=10, LAST_STATE=11};
 
 ENUM_LH_STATE systemState = LAST_STATE;
 ENUM_LH_STATE nextState = HOMING;
@@ -145,7 +147,7 @@ int posJRy     = 0; //Joystick Analog position X
 boolean stringComplete             = false;  // whether the string is complete
 String inputString                 = "";         // a string to hold incoming data
 unsigned long stateTimeOut         = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
-unsigned long stateReportInterval  =0; //Used to Time a frequent serial output to host. so port does not freeze
+unsigned long stateReportInterval  =  0; //Used to Time a frequent serial output to host. so port does not freeze
 
 
 // Function Prototypes

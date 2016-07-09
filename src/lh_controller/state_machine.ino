@@ -36,7 +36,7 @@ void handleStopStateEvents()
         }else
         {//Refresh Move command Until Limit Switch is hit
           stepperZ.move(-5000);
-          stepperP.move(-5000);
+          stepperP.move(5000);
           //stepperX.move(-5000);
           //stepperY.move(-5000);
 
@@ -123,10 +123,10 @@ void handleStopStateEvents()
            stepperZ.move(0);
 
         if (stateSW_BT2 == 1) //Up Pippete
-           stepperP.move(400);
+           stepperP.move(-400);
 
         if (stateSW_BT5 == 1) //Down Pippete
-           stepperP.move(-400);
+           stepperP.move(400);
 
          if(stateSW_BT2==0 && stateSW_BT5 == 0)
            stepperP.move(0);
@@ -186,30 +186,24 @@ void handleStartStateEvents()
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
         stepperZ.moveTo(-20000);
-        stepperP.moveTo(-8000);
+        stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
         
 
         stateTimeOut =  millis()+65000; //With timeout
         systemState = HOMING;
       break;
 
-      case HOME: //nOW sYTEM rEACHED hOME / Release SWitches    
+      case HOME: //nOW sYTEM REACHED hOME / Release SWitches    
       //For Some Reason Using the Main Loop With Move To Does not Work / Need todo a blocking call here
+       stepperX.setCurrentPosition(0);
+       stepperY.setCurrentPosition(0);
+       stepperZ.setCurrentPosition(0);
+       stepperP.setCurrentPosition(0);
+
        stepperX.runToNewPosition(50);
        stepperY.runToNewPosition(50);
        stepperZ.runToNewPosition(100);
-       stepperP.runToNewPosition(2500);
-//
-//        stepperX.stop();
-//        stepperY.stop();
-//        stepperZ.stop();
-//        stepperP.stop();
-//
-//        stepperX.moveTo(50); 
-//        stepperY.moveTo(50);
-//        stepperZ.moveTo(100);
-//        stepperP.moveTo(100);
-
+       stepperP.runToNewPosition(-2500);
 
         
         systemState = HOME;
@@ -230,7 +224,7 @@ void handleStartStateEvents()
         stepperP.setMaxSpeed(2000);
 
         list_position* nxtpos;
-        nxtpos = savedPrograms[0].currPos;
+        nxtpos = savedPrograms[0].epiPos;
                   
         stepperX.moveTo(nxtpos->Xpos); 
         stepperY.moveTo(nxtpos->Ypos);
@@ -239,9 +233,9 @@ void handleStartStateEvents()
 
         sprintf(buff,"Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
         ////INcrement tonext Position  if not at end
-        if (savedPrograms[0].currPos != savedPrograms[0].telosPos)   
+        if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
         {
-          savedPrograms[0].currPos = nxtpos->epomPos; //Change pointer to next Pos
+          savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }
 
         Serial.println(buff);
@@ -277,22 +271,36 @@ void handleStartStateEvents()
             savedPrograms[0].telosPos->epomPos = newpos;
             savedPrograms[0].telosPos          = newpos; //Update That Last Pos Is this new pos
             
-            newpos->seqID = savedPrograms[0].posCount;
+            newpos->epomPos                   = 0; //IMportant to set this to 0 So clear end of list 
+            newpos->seqID                     = savedPrograms[0].posCount;
+            
             savedPrograms[0].posCount++;
             
             //char buff[130];
-            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0].posCount, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0].telosPos->epomPos->seqID, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
-            free(newpos);
+            //free(newpos);
             dispState();
             display.display();
-
-            
-
             
             systemState = SAVE_POSITION;
       }
+      break;
+      
+      case SAVE_PROGRAM:
+        saveProgram(savedPrograms); //Save the 1st Program
+
+        fileroot = SD.open("/");
+        printDirectory(fileroot, 0);
+        fileroot.close();
+        systemState = SAVE_PROGRAM;
+      break;
+      
+      case LOAD_PROGRAM:
+
+      
+      systemState = LOAD_PROGRAM;
       break;
 
       case RESET:

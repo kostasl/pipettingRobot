@@ -99,20 +99,12 @@ int checkHoming()
     {
       iret++; //Increment Number of Switches pressed 
 
-      if (stepperP.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
+      if (stepperP.targetPosition() > 1) //Stop Motor only if Pressing Against LIMIT switch
       {
-          stepperP.moveTo(1);
+          stepperP.moveTo(-1);
           stepperP.stop();
   
       }
-    }
-
-    //Other Limit Is 3500 Tix Brings it to the upper lim
-
-    if (stepperP.currentPosition()> 3500)
-    {
-          stepperP.moveTo(3500);
-          stepperP.stop();
     }
 
     
@@ -165,6 +157,26 @@ int checkOutOfRange()
   
     iret++;
   }
+
+
+    //Other Limit Is -3500 Tix Brings it to the upper lim
+    if (stepperP.currentPosition() <= -3500)
+    {     
+          //stepperP.setCurrentPosition(-3500);
+          if (stepperP.currentPosition() - stepperP.targetPosition() > 0)
+          {
+            stepperP.moveTo(-3499);
+            stepperP.setSpeed(0);
+            stepperP.stop();
+          }
+            
+          display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
+          display.print("P LIM");
+          display.display();
+          
+          iret++;
+    }
+
 
 //Return The number of Switches Pressed
 return iret;
