@@ -143,15 +143,21 @@ int saveProgram(t_program* prog)
   
   sprintf(buff,"--SD - Saving program: %s",prog->progname);
   Serial.println(buff); 
+
+  //Delete File if it exists
+  if (SD.exists(prog->progname))
+     SD.remove(prog->progname); 
   
-  //Open File
+  //Open new File for writing program
   File progFile = SD.open(prog->progname, FILE_WRITE);
+
+  //Program has position pointers to save - get the 1st one 
   prog_position* savePos = prog->protoPos;
 
   //Save Header
   progFile.write((uint8_t*)prog,sizeof(t_program));
  
-  //Check Count Just in case next position is not null
+  //Iterate and save positions - Check Count Just in case next position is not null
   while (savePos != 0 && cnt < prog->posCount) //Stop when 
   {
 
