@@ -46,8 +46,9 @@
 #define PIN_SW_PB          33
 
 #define LH_MIN_JOY_MOVE    20 //Minimum Joystick Reading Before Moving Motor
+#define LIM_PIPETTE_UPTIX  -3400 //Upper Allowed position Of Pippete in #steps (stopping upper colission)
 
-#define BTN_DEBOUNCE_TIMEMS 40 //DEbounce of LImit Switches in ms
+#define BTN_DEBOUNCE_TIMEMS 150 //DEbounce of LImit Switches in ms
 
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);

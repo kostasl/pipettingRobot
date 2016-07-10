@@ -19,13 +19,19 @@ void handleStopStateEvents()
         //stepperY.setMaxSpeed(1);
         //stepperX.setMaxSpeed(1);
         //stepperP.setMaxSpeed(1);
-        
+         nextState = IDLE;
+
          if (btn_JR_lim.onPressed()){
            nextState = JOYSTICK;
            display.println("BUTTON");
            display.display();
-         }else
-           nextState = IDLE;
+         }
+         
+         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+           nextState = LOAD_PROGRAM;
+           display.println("LOAD PROGRAM \n EOS.PRG");
+           display.display();
+         }
       break;
 
       case HOMING: //2
@@ -152,6 +158,10 @@ void handleStopStateEvents()
 
       break;
 
+      case LOAD_PROGRAM:
+        nextState = TEST_RUN;
+      break;
+      
       case RESET:
         nextState = IDLE;
       break;

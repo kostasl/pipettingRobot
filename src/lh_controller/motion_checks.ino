@@ -159,13 +159,13 @@ int checkOutOfRange()
   }
 
 
-    //Other Limit Is -3500 Tix Brings it to the upper lim
-    if (stepperP.currentPosition() <= -3500)
+    //Other Limit Is -LIM_PIPETTE_UPTIX Tix Brings it to the upper lim
+    if (stepperP.currentPosition() <= LIM_PIPETTE_UPTIX)
     {     
-          //stepperP.setCurrentPosition(-3500);
+          //stepperP.setCurrentPosition(LIM_PIPETTE_UPTIX);
           if (stepperP.currentPosition() - stepperP.targetPosition() > 0)
           {
-            stepperP.moveTo(-3499);
+            stepperP.moveTo(LIM_PIPETTE_UPTIX-1);
             stepperP.setSpeed(0);
             stepperP.stop();
           }

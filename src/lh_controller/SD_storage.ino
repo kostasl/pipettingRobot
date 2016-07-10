@@ -144,14 +144,15 @@ t_program* loadProgram(char* progname)
       //Attach Position
       if (cnt == 0)        //Set pointer to 1st position and epiPos (current position to start of program)
       {
-        prog->protoPos  = loadPos;
-        prog->epiPos    = loadPos;
-
-        prog->telosPos->epomPos = loadPos; //LInk The list , before replacing the pointer to the last Pos
-        prog->telosPos = loadPos; //Set last Pos to be the last one loaded
+        prog->protoPos          = loadPos;
+        prog->epiPos            = loadPos;
+        prog->telosPos          = loadPos; //Set last Pos to be the last one loaded
       }
       else
-       prog->telosPos = loadPos; //Set last Pos to be the last one loaded
+      {
+       prog->telosPos->epomPos = loadPos; //LInk The list , before replacing the pointer to the last Pos
+       prog->telosPos           = loadPos; //Set last Pos to be the last one loaded
+      }
 
       
        sprintf(buff,"SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", loadPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
@@ -163,7 +164,7 @@ t_program* loadProgram(char* progname)
   //Close File
   progFile.close();
 
-  Serial.println("Done Saving");
+  Serial.println("Done Loading");
   
   return prog;
 }
