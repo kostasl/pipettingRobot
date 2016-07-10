@@ -107,33 +107,65 @@ void testReadWrite()
 //  list_position* telosPos;
 //  
 //} t_program;
-
+//Function Loads Program header and list of positions - Memory is not loaded as a block, pointers need to be reinstated
+//So assigns the right pointers as it loads
 t_program* loadProgram(char* progname)
 {
   t_program* prog = new t_program;
-
+  int cnt = 0;
+  char buff[100];
+  sprintf(buff,("--SD - Load program: %s"),progname);
+  Serial.println(buff); 
+  
   //Open File with respective progname
-  File progFile = SD.open(prog->progname, FILE_READ);
+  File progFile = SD.open(progname, FILE_READ);
   
   //Load Header
   if (progFile.available())
     progFile.read(prog,sizeof(t_program));
-    
+  else
+  {
+    Serial.println(F("Loading failted"));
+    return 0; 
+  } 
+
+    sprintf(buff,("Prog Opened  %s has n:"),prog->progname,prog->posCount);
+    Serial.println(buff); 
+  
   //Load Each Position
      while (progFile.available()) {
-      //read(void *buf, uint16_t nbyte);
-      
-      
-      
-      Serial.write(progFile.read());
-    }
+      prog_position* loadPos = new prog_position;
 
-  //Copy pointer of First position to currPos
+       //Read Bytes into structure of program_Position
+       //read(void *buf, uint16_t nbyte);
+       progFile.read(loadPos,sizeof(prog_position));     
 
-  //Copy Pointer of Last to telosPos
+
+      //Attach Position
+      if (cnt == 0)        //Set pointer to 1st position and epiPos (current position to start of program)
+      {
+        prog->protoPos  = loadPos;
+        prog->epiPos    = loadPos;
+
+        prog->telosPos->epomPos = loadPos; //LInk The list , before replacing the pointer to the last Pos
+        prog->telosPos = loadPos; //Set last Pos to be the last one loaded
+      }
+      else
+       prog->telosPos = loadPos; //Set last Pos to be the last one loaded
+
+      
+       sprintf(buff,"SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", loadPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
+       Serial.println(buff);
+     
+      cnt++;
+    } //End While loop
 
   //Close File
   progFile.close();
+
+  Serial.println("Done Saving");
+  
+  return prog;
 }
 
 int saveProgram(t_program* prog)

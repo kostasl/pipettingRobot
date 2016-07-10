@@ -100,8 +100,8 @@ typedef struct {
 } t_program;
 
 
-list_position savedPositions[MAX_POSITIONS];
-t_program savedPrograms[MAX_POSITIONS]; //Array Of Saved Programs
+//list_position savedPositions[MAX_POSITIONS];
+t_program* savedPrograms[MAX_POSITIONS]; //Array Of pointers to Saved Programs
 
 int iposSaveIndex     = 0; // Index Of last position saved on this program  
 int iposCurrentIndex  = 0; //Index Of currently running position of program

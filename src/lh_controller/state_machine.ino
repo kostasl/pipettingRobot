@@ -213,6 +213,7 @@ void handleStartStateEvents()
       
 
       case TEST_RUN:
+      {
         stepperX.setAcceleration(1500); 
         stepperY.setAcceleration(1500);   
         stepperZ.setAcceleration(1500);   
@@ -223,8 +224,8 @@ void handleStartStateEvents()
         stepperZ.setMaxSpeed(2000);
         stepperP.setMaxSpeed(2000);
 
-        list_position* nxtpos;
-        nxtpos = savedPrograms[0].epiPos;
+        prog_position* nxtpos;
+        nxtpos = savedPrograms[0]->epiPos;
                   
         stepperX.moveTo(nxtpos->Xpos); 
         stepperY.moveTo(nxtpos->Ypos);
@@ -233,14 +234,15 @@ void handleStartStateEvents()
 
         sprintf(buff,"Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
         ////INcrement tonext Position  if not at end
-        if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
+        if (savedPrograms[0]->epiPos != savedPrograms[0]->telosPos)   
         {
-          savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
+          savedPrograms[0]->epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }
 
         Serial.println(buff);
         stateTimeOut =  millis()  + 10000; //Give 10sec timeout until move executes
         systemState = TEST_RUN;
+      }
       break;
       
       case MOVING:
@@ -268,16 +270,16 @@ void handleStartStateEvents()
 
             //savedPositions[iposSaveIndex-1].epomPos = newpos;
             //savedPositions[iposSaveIndex] = *newpos;
-            savedPrograms[0].telosPos->epomPos = newpos;
-            savedPrograms[0].telosPos          = newpos; //Update That Last Pos Is this new pos
+            savedPrograms[0]->telosPos->epomPos = newpos;
+            savedPrograms[0]->telosPos          = newpos; //Update That Last Pos Is this new pos
             
             newpos->epomPos                   = 0; //IMportant to set this to 0 So clear end of list 
-            newpos->seqID                     = savedPrograms[0].posCount;
+            newpos->seqID                     = savedPrograms[0]->posCount;
             
-            savedPrograms[0].posCount++;
+            savedPrograms[0]->posCount++;
             
             //char buff[130];
-            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0].telosPos->epomPos->seqID, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0]->telosPos->epomPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
             //free(newpos);
@@ -289,18 +291,34 @@ void handleStartStateEvents()
       break;
       
       case SAVE_PROGRAM:
-        saveProgram(savedPrograms); //Save the 1st Program
+      {
+        saveProgram(*savedPrograms); //Save the 1st Program
 
         fileroot = SD.open("/");
         printDirectory(fileroot, 0);
         fileroot.close();
+        
         systemState = SAVE_PROGRAM;
+      }
       break;
       
       case LOAD_PROGRAM:
-
+      {
+        ///Need to clear LIst of positions too
+        prog_position* cpos    = savedPrograms[0]->protoPos;
+        prog_position* nxtpos = 0;
+        
+        while (cpos)
+        {
+          nxtpos = cpos->epomPos; 
+          free(cpos);        
+          cpos = nxtpos;
+        }
+        
+        savedPrograms[0] = loadProgram(("EOS.PRG"));      
       
-      systemState = LOAD_PROGRAM;
+        systemState = LOAD_PROGRAM;
+      }
       break;
 
       case RESET:

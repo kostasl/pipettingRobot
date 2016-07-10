@@ -116,16 +116,11 @@ void setup() {
   stepperP.setEnablePin(PIN_MOTOR_P_EN);
   stepperP.setPinsInverted(true,true,true); //Not Inverting Direction - +ve are towards Home Switches
   stepperP.setCurrentPosition(0);
-   	
-  //stepperP.setMaxSpeed(1000);
+     
   
-  
- // stepperX.setAcceleration(1500); 
- // stepperY.setAcceleration(1500); 	
- // stepperZ.setAcceleration(2500); 	
- // stepperP.setAcceleration(1500);
+
 //Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
-  reset();
+ reset();
   
   
   //stepper2.setMaxSpeed(100);
@@ -167,7 +162,6 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
   Serial.println("initialization done.");
 
   fileroot = SD.open("/");
-
   printDirectory(fileroot, 0);
   fileroot.close();
 } //End Of Setup
@@ -202,15 +196,14 @@ if (nextState != systemState)
 else
     //Add State Events Events In Following function
     handleStopStateEvents();
- 
+
 
   //Check Limit Switch sensors and Stop Motion If needed Stop
   checkHoming();
   //if (systemState != HOMING) //If LimitOut SW are pressed Speed is set to 0/ So dont do this when homing
   checkOutOfRange();
-    
-  readJoystick();
 
+  readJoystick();
 
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
@@ -249,12 +242,12 @@ else
 }
 
 
-
 void reset()
 {
 
-  memset(savedPositions,0,sizeof(savedPositions));
+  memset(savedPrograms,0,sizeof(savedPrograms));
 
+  //free(savedPrograms);
   //Create 1st Position
   prog_position* newpos = new prog_position;
   //savedPositions[iposSaveIndex]   
@@ -264,11 +257,12 @@ void reset()
   newpos->Ppos  = -2500;
   newpos->seqID = 0;
 
-  savedPrograms[0].posCount = 1; //First Default Position Saved
-  savedPrograms[0].protoPos = newpos; //First Position
-  savedPrograms[0].epiPos   = newpos; //Current Position
-  savedPrograms[0].telosPos = newpos; //Last Position
-  strcpy(savedPrograms[0].progname,"EOS.PRG"); //Name of 1st Program
+  savedPrograms[0] = new  t_program;
+  savedPrograms[0]->posCount = 1; //First Default Position Saved
+  savedPrograms[0]->protoPos = newpos; //First Position
+  savedPrograms[0]->epiPos   = newpos; //Current Position
+  savedPrograms[0]->telosPos = newpos; //Last Position
+  strcpy(savedPrograms[0]->progname,"EOS.PRG"); //Name of 1st Program
 
 
   stepperX.setMaxSpeed(1500);
