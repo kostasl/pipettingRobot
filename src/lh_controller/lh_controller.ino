@@ -32,6 +32,7 @@
    Problems To FIX:Jitter/drift on Y axis backwards,Z axis sometimes does not home completely thus zero position misplaced causes crash through tip holder!
   27/06/16 Added Support for SD Card
   03/07/16 There are issues with replay positionioning especially for P, Need to stop it from exceeding upper limit (where there is no switch - limit to steps 3500 / or add physical Sw)
+  10/07/16 Made Program Saving/Loading from SD Card, with replay - But problems after 1st replay - loading again fails/readis from random mem
 */
 
 #include <AccelStepper.h>

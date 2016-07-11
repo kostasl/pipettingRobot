@@ -81,7 +81,11 @@ void handleStopStateEvents()
             char buff[60];
             sprintf(buff,"End of Program at pos i: %d ", savedPrograms[0]->telosPos->seqID);
             Serial.println(buff);
-            //DOne the sequence - Go Back HOME
+            //DOne the sequence 
+            //Reset Program To Beginning 
+            savedPrograms[0]->epiPos = savedPrograms[0]->protoPos;
+            
+            //- Go Back HOME
             nextState = HOMING;
             ///iposCurrentIndex = 0;
           }
