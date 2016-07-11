@@ -140,7 +140,7 @@ t_program* loadProgram(char* progname)
        //read(void *buf, uint16_t nbyte);
        progFile.read(loadPos,sizeof(prog_position));     
 
-
+      loadPos->epomPos = 0;// Reset this pointer until the next Pos is loaded
       //Attach Position
       if (cnt == 0)        //Set pointer to 1st position and epiPos (current position to start of program)
       {
@@ -151,11 +151,11 @@ t_program* loadProgram(char* progname)
       else
       {
        prog->telosPos->epomPos = loadPos; //LInk The list , before replacing the pointer to the last Pos
-       prog->telosPos           = loadPos; //Set last Pos to be the last one loaded
+       prog->telosPos          = loadPos; //Set last Pos to be the last one loaded
       }
 
       
-       sprintf(buff,"SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", loadPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
+       sprintf(buff,"SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", prog->telosPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
        Serial.println(buff);
      
       cnt++;

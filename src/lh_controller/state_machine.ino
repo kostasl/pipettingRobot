@@ -70,16 +70,20 @@ void handleStopStateEvents()
          if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
          {
             //displState();
-          //Do not Exceed Last saved Position
-           if (iposCurrentIndex <= iposSaveIndex)
+          //Do not Exceed Last saved Position - Check If Next Is Null
+           if (savedPrograms[0]->epiPos !=0)
            { 
-
-              iposCurrentIndex++;
+              //iposCurrentIndex++;
+             
               nextState = TEST_RUN; //Do it again
           }else
-          { //DOne the sequence - Go Back HOME
+          { 
+            char buff[60];
+            sprintf(buff,"End of Program at pos i: %d ", savedPrograms[0]->telosPos->seqID);
+            Serial.println(buff);
+            //DOne the sequence - Go Back HOME
             nextState = HOMING;
-            iposCurrentIndex = 0;
+            ///iposCurrentIndex = 0;
           }
          }
 
@@ -247,10 +251,16 @@ void handleStartStateEvents()
         if (savedPrograms[0]->epiPos != savedPrograms[0]->telosPos)   
         {
           savedPrograms[0]->epiPos = nxtpos->epomPos; //Change pointer to next Pos
+        }else
+        
+        //If Moved to Last One, then Make Sure Next Pos Is null
+//        if (savedPrograms[0]->epiPos == savedPrograms[0]->telosPos)  
+        {
+          savedPrograms[0]->epiPos = 0; //Set To Null
         }
-
         Serial.println(buff);
-        stateTimeOut =  millis()  + 10000; //Give 10sec timeout until move executes
+
+        stateTimeOut =  millis()  + 20000; //Give 10sec timeout until move executes
         systemState = TEST_RUN;
       }
       break;
@@ -289,7 +299,7 @@ void handleStartStateEvents()
             savedPrograms[0]->posCount++;
             
             //char buff[130];
-            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0]->telosPos->epomPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0]->telosPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
             //free(newpos);
