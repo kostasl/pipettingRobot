@@ -33,6 +33,7 @@
   27/06/16 Added Support for SD Card
   03/07/16 There are issues with replay positionioning especially for P, Need to stop it from exceeding upper limit (where there is no switch - limit to steps 3500 / or add physical Sw)
   10/07/16 Made Program Saving/Loading from SD Card, with replay - But problems after 1st replay - loading again fails/readis from random mem
+  11/07/16 Fixed bug above, was due to using free instead of delete/new combination for dyn memory alloc/dealloc
 */
 
 #include <AccelStepper.h>
@@ -120,8 +121,7 @@ void setup() {
      
   
 
-//Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
- reset();
+
   
   
   //stepper2.setMaxSpeed(100);
@@ -165,6 +165,11 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
   fileroot = SD.open("/");
   printDirectory(fileroot, 0);
   fileroot.close();
+
+  //Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
+  memset(savedPrograms,0,sizeof(t_program*)*MAX_POSITIONS); //Set to 0 For non-inited
+  //reset(); //Homing Will Call Reset
+  
 } //End Of Setup
 
 
@@ -245,27 +250,15 @@ else
 
 void reset()
 {
-
-  memset(savedPrograms,0,sizeof(savedPrograms));
-
-  //free(savedPrograms);
-  //Create 1st Position
-  prog_position* newpos = new prog_position;
-  //savedPositions[iposSaveIndex]   
-  newpos->Xpos  = 0;
-  newpos->Ypos  = 0;
-  newpos->Zpos  = 0;
-  newpos->Ppos  = -2500;
-  newpos->seqID = 0;
-
-  savedPrograms[0] = new  t_program;
-  savedPrograms[0]->posCount = 1; //First Default Position Saved
-  savedPrograms[0]->protoPos = newpos; //First Position
-  savedPrograms[0]->epiPos   = newpos; //Current Position
-  savedPrograms[0]->telosPos = newpos; //Last Position
-  strcpy(savedPrograms[0]->progname,"EOS.PRG"); //Name of 1st Program
-
-
+  
+  //Initially savedPrograms[0] = 0;
+  //memset(savedPrograms,0,sizeof(t_program*)*MAX_POSITIONS); //Set to 0 For non-inited
+  
+  Serial.println("Prog Pointer:");
+  Serial.print((unsigned int)savedPrograms[0]);
+  
+  prog_init(savedPrograms[0]);
+  
   stepperX.setMaxSpeed(1500);
   stepperY.setMaxSpeed(1500);
   stepperZ.setMaxSpeed(2000);
@@ -280,5 +273,59 @@ void reset()
   //savedPositions[0] = (t_position)800,800,200,100};
   iposSaveIndex = 0; //pos to save next Pos;
   iposCurrentIndex=0;
+}
+
+
+//Initializes a new Program Data structure 
+//If pointer not empty then it deletes the existing structure first 
+void prog_init(t_program*& prog)
+{
+
+  if (prog != 0)
+  {
+    prog_clearPoslist(prog);
+    delete(prog);
+  }
+
+  
+  
+  //Init Prog / Create 1st defaultPosition where all programs start from
+  prog_position* newpos = new prog_position;
+  newpos->Xpos  = 0;
+  newpos->Ypos  = 0;
+  newpos->Zpos  = 0;
+  newpos->Ppos  = -2500;
+  newpos->seqID = 0;
+
+  prog = new  t_program;
+  prog->posCount = 1; //First Default Position Saved
+  prog->protoPos = newpos; //First Position
+  prog->epiPos   = newpos; //Current Position
+  prog->telosPos = newpos; //Last Position
+  strcpy(prog->progname,"EOS.PRG"); //Name of 1st Program
+
+}
+
+///Delete Clear memory of structs in program list of positions
+void prog_clearPoslist(t_program* prog)
+{
+      if (prog == 0)
+        return;
+      if (prog->protoPos == 0 || prog->posCount == 0 )
+        return;
+        
+      ///Need to clear LIst of positions too
+      prog_position* cpos    = prog->protoPos;
+      prog_position* nxtpos = 0;
+      
+      while (cpos)
+      {
+        nxtpos = cpos->epomPos;
+        delete(cpos);        
+        cpos = nxtpos;
+      }
+
+    prog->posCount = 0;
+      
 }
 

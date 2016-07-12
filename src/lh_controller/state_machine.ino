@@ -328,17 +328,8 @@ void handleStartStateEvents()
       
       case LOAD_PROGRAM:
       {
-        ///Need to clear LIst of positions too
-        prog_position* cpos    = savedPrograms[0]->protoPos;
-        prog_position* nxtpos = 0;
-        
-        while (cpos)
-        {
-          nxtpos = cpos->epomPos; 
-          free(cpos);        
-          cpos = nxtpos;
-        }
-        
+  
+        //prog_clearPoslist(savedPrograms[0]);
         savedPrograms[0] = loadProgram(("EOS.PRG"));      
       
         systemState = LOAD_PROGRAM;
