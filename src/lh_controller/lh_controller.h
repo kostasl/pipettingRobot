@@ -46,9 +46,9 @@
 #define PIN_SW_PB          33
 
 #define LH_MIN_JOY_MOVE    20 //Minimum Joystick Reading Before Moving Motor
-#define LIM_PIPETTE_UPTIX  -3400 //Upper Allowed position Of Pippete in #steps (stopping upper colission)
+#define LIM_PIPETTE_UPTIX  -2800 //Upper Allowed position Of Pippete in #steps (stopping upper colission)
 
-#define BTN_DEBOUNCE_TIMEMS 350 //DEbounce of LImit Switches in ms
+#define BTN_DEBOUNCE_TIMEMS 500 //DEbounce of LImit Switches in ms
 
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
@@ -58,7 +58,7 @@ RBD::Button btn_PB_lim(PIN_SW_PB);
 RBD::Button btn_ZT_lim(PIN_SW_ZT);
 
 RBD::Button btn_JR_lim(PIN_SW_JR); //Joystic Button Press
-
+bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 
 
 // These are neede for both hardware & softare SPI /Modified lib to give SPI_CLOCK_DIV4 

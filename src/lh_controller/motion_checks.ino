@@ -158,21 +158,26 @@ int checkOutOfRange()
     iret++;
   }
 
-
     //Other Limit Is -LIM_PIPETTE_UPTIX Tix Brings it to the upper lim
-    if (stepperP.currentPosition() <= LIM_PIPETTE_UPTIX)
+      //stepperP.setCurrentPosition(LIM_PIPETTE_UPTIX);
+    if (flag_P_lim) //If Limit Hit Already - Then recover if moving back out
+    {
+      if (stepperP.currentPosition() - stepperP.targetPosition() >= 0)
+      {
+        stepperP.moveTo(LIM_PIPETTE_UPTIX-1);
+        stepperP.setSpeed(0);
+        stepperP.stop();
+      }else
+        flag_P_lim=false; //Unflag
+    }
+    
+    if (stepperP.currentPosition() <= LIM_PIPETTE_UPTIX && flag_P_lim==false)
     {     
-          //stepperP.setCurrentPosition(LIM_PIPETTE_UPTIX);
-          if (stepperP.currentPosition() - stepperP.targetPosition() > 0)
-          {
-            stepperP.moveTo(LIM_PIPETTE_UPTIX-1);
-            stepperP.setSpeed(0);
-            stepperP.stop();
-          }
-            
           display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
           display.print("P LIM");
           display.display();
+          
+          flag_P_lim = true;
           
           iret++;
     }

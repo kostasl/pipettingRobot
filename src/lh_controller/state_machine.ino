@@ -207,7 +207,7 @@ void handleStartStateEvents()
         stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
         
 
-        stateTimeOut =  millis()+65000; //With timeout
+        stateTimeOut =  millis()+85000; //With timeout
         systemState = HOMING;
       break;
 
