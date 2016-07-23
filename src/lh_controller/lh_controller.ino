@@ -34,6 +34,8 @@
   03/07/16 There are issues with replay positionioning especially for P, Need to stop it from exceeding upper limit (where there is no switch - limit to steps 3500 / or add physical Sw)
   10/07/16 Made Program Saving/Loading from SD Card, with replay - But problems after 1st replay - loading again fails/readis from random mem
   11/07/16 Fixed bug above, was due to using free instead of delete/new combination for dyn memory alloc/dealloc
+  23/07/16 Added Conservative error handling to avoid colission with Limit SW glitch //Was not enough-> Added manual dig pin read of SW in checkHoming to verify what the RDBButton Reads -
+            This seems fix the glitch! prob bug in RDBLibrary!
 */
 
 #include <AccelStepper.h>
@@ -135,7 +137,12 @@ void setup() {
  pinMode(PIN_SW_BT3,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT4,INPUT_PULLUP); //Joystic Sw Setup
  pinMode(PIN_SW_BT5,INPUT_PULLUP); //Joystic Sw Setup
-
+ pinMode(PIN_SW_XL,INPUT_PULLUP);
+ pinMode(PIN_SW_YF,INPUT_PULLUP);
+ pinMode(PIN_SW_YB,INPUT_PULLUP);
+ pinMode(PIN_SW_ZT,INPUT_PULLUP);
+ pinMode(PIN_SW_PB,INPUT_PULLUP);
+ 
  pinMode(PIN_CS_SDCARD,OUTPUT); //Set To it must be left as an output or the SD library won't work.
 
 //Set SW  Debounce To longer - Avoid Noisy Signals.
@@ -203,12 +210,24 @@ else
     //Add State Events Events In Following function
     handleStopStateEvents();
 
-
+  int limCnt = 0;
   //Check Limit Switch sensors and Stop Motion If needed Stop
-  checkHoming();
-  //if (systemState != HOMING) //If LimitOut SW are pressed Speed is set to 0/ So dont do this when homing
-  checkOutOfRange();
+  limCnt = checkHoming();
+  //delay(1);
+  limCnt += checkHoming();
+  limCnt += checkHoming();
 
+  //if (systemState != HOMING) //If LimitOut SW are pressed Speed is set to 0/ So dont do this when homing
+  limCnt += checkOutOfRange();
+
+  ////---CONSERVATIVE ERROR HANDLE - Raise error if SW is pressed while robot is moving/replay position
+  //If Switched pressed while replay, then Hault Robot- Report Error
+  if (limCnt > 3  && (systemState != HOMING && systemState != HOME && systemState != IDLE && systemState != JOYSTICK))
+  {
+   //nextState = POS_ERROR;
+  }
+  
+  //Read Buttons And Limit Switches
   readJoystick();
 
 
@@ -236,7 +255,7 @@ else
   {//Report Every sec.
     stateReportInterval = millis()+500;
 
-   
+       
     if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0) //Display Updates disrupt the  Motion
     {
       dispState();

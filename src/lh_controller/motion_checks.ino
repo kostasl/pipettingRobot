@@ -8,7 +8,7 @@
 int checkHoming()
 {
   int iret = 0;
-  
+    
   //Read Switches Home Reached
   
   //stateSW_XR =  //digitalRead(PIN_SW_XR);
@@ -20,21 +20,27 @@ int checkHoming()
   display.setFont(); //Revert To Standart Font
  
    
-   if (btn_XR_lim.onPressed())
-   {
-      
+   if (btn_XR_lim.onPressed() )
+   {//&& stateSW_XR == 1
+      stateSW_XR    = 1-(int)digitalRead(PIN_SW_XR);  //Invert So it Behaves like the limit SW
+      if (stateSW_XR == 1)  
+        {
         stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
         stepperX.stop();
         display.setCursor(0,disp_LOW_LINE);
         display.print("X ON");
         display.display();
+        }
      }
 
-    if (btn_XR_lim.isPressed() )
+    if (btn_XR_lim.isPressed())
     {
+      //stateSW_XR
+
        iret++; //Increment Number of Switches pressed 
        if (stepperX.targetPosition() < 1) //Only stopMotor if next pos is pressing against switch
         {
+            stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
            stepperX.moveTo(1);
            stepperX.stop();
        }
@@ -43,11 +49,17 @@ int checkHoming()
     
     if (btn_YB_lim.onPressed()) //Triggered Once When State Changes to pressed
     {      
+      //&& stateSW_YB == 1 //Verify SW Press
+        stateSW_YB    = 1-(int)digitalRead(PIN_SW_YB);  //Invert So it Behaves like the limit SW
+
+       if (stateSW_YB == 1)  
+       {
         stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
         stepperY.stop(); //Just in case future vers change the above
         display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
         display.print("Y ON");
         display.display();
+      }
     }
       
     if (btn_YB_lim.isPressed())
@@ -55,6 +67,8 @@ int checkHoming()
       iret++; //Increment Number of Switches pressed 
       if (stepperY.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
       {
+          stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
+
           stepperY.moveTo(1);
           stepperY.stop();
       }
@@ -62,13 +76,17 @@ int checkHoming()
 
     if (btn_ZT_lim.onPressed())
     {
-      //    
-      stepperZ.setCurrentPosition(0);
-      stepperZ.stop();
-      stepperZ.setSpeed(0);
-      display.setCursor(disp_LIM_SPACING*2,disp_LOW_LINE);
-      display.print("Z ON");
-      display.display();
+      ////Verify SW Press
+      stateSW_ZT    = 1-(int)digitalRead(PIN_SW_ZT);  //Invert So it Behaves like the limit SW
+      if ( stateSW_ZT == 1)
+      {
+        stepperZ.setCurrentPosition(0);
+        stepperZ.stop();
+        stepperZ.setSpeed(0);
+        display.setCursor(disp_LIM_SPACING*2,disp_LOW_LINE);
+        display.print("Z ON");
+        display.display();
+      }
     }
     
     if (btn_ZT_lim.isPressed())
@@ -77,6 +95,8 @@ int checkHoming()
 
       if (stepperZ.targetPosition() < 1) //Stop Motor only if Pressing Against LIMIT switch
       {
+          stepperZ.setCurrentPosition(0); //If not reset again it doesnt seem to stop the pushing against sw
+
           stepperZ.moveTo(1);
           stepperZ.stop();
   
@@ -84,23 +104,30 @@ int checkHoming()
     }
 
     
-    if (btn_PB_lim.onPressed())
+    if (btn_PB_lim.onPressed() )
     {
+      //Verify SW Press
+        stateSW_PB    = 1-(int)digitalRead(PIN_SW_PB);  //Invert So it Behaves like the limit SW
 
-        stepperP.setCurrentPosition(0);
-        stepperP.setSpeed(0);
-        stepperP.stop();
-        display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
-        display.print("P ON");
-        display.display();
+        if (stateSW_PB == 1)
+        {
+          stepperP.setCurrentPosition(0);
+          stepperP.setSpeed(0);
+          stepperP.stop();
+          display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
+          display.print("P ON");
+          display.display();
+        }
     }
 
-    if (btn_PB_lim.isPressed() )
+    if (btn_PB_lim.isPressed())
     {
       iret++; //Increment Number of Switches pressed 
 
       if (stepperP.targetPosition() > 1) //Stop Motor only if Pressing Against LIMIT switch
       {
+          stepperP.setCurrentPosition(0);
+
           stepperP.moveTo(-1);
           stepperP.stop();
   

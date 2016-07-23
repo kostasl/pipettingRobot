@@ -48,7 +48,7 @@
 #define LH_MIN_JOY_MOVE    20 //Minimum Joystick Reading Before Moving Motor
 #define LIM_PIPETTE_UPTIX  -2800 //Upper Allowed position Of Pippete in #steps (stopping upper colission)
 
-#define BTN_DEBOUNCE_TIMEMS 500 //DEbounce of LImit Switches in ms
+#define BTN_DEBOUNCE_TIMEMS 100 //DEbounce of LImit Switches in ms
 
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
@@ -121,7 +121,7 @@ AccelStepper stepperP(AccelStepper::DRIVER,PIN_MOTOR_P_STEP,PIN_MOTOR_P_DIR); //
 Adafruit_SSD1325 display(OLED_DC, OLED_RESET, OLED_CS);
 
 ///STATE Variables
-enum ENUM_LH_STATE {IDLE=1, HOMING=2, HOME=3, TEST_RUN=4, MOVING=5, JOYSTICK=6, SAVE_POSITION=7, LOAD_PROGRAM=8, SAVE_PROGRAM=9, RESET=10, LAST_STATE=11};
+enum ENUM_LH_STATE {IDLE=1, HOMING=2, HOME=3, TEST_RUN=4, MOVING=5, JOYSTICK=6, SAVE_POSITION=7, LOAD_PROGRAM=8, SAVE_PROGRAM=9, RESET=10, POS_ERROR =11 ,LAST_STATE=12};
 
 ENUM_LH_STATE systemState = LAST_STATE;
 ENUM_LH_STATE nextState = HOMING;

@@ -205,6 +205,16 @@ void dispState()
 
       default:
       break;
+      
+      case POS_ERROR:
+        display.setCursor(0,11);
+        display.println("ERROR 101");
+        display.setTextColor( WHITE,BLACK); // 'inverted' text
+        display.setCursor(0,28);
+     
+        display.println("Pos. Lost");
+      
+      break;
     }
   
       ////Clear The Switch Status - Clear Screen On Swithc

@@ -14,12 +14,23 @@ void readJoystick()
 {
   posJRx       = analogRead(PIN_AJR_X)-531; //Substrract 0 pos, 
   posJRy       = analogRead(PIN_AJR_Y)-531;
+ 
   //stateSW_JR    = 1-(int)digitalRead(PIN_SW_JR);  //Invert So it Behaves like the limit SW
   stateSW_BT1    = 1-(int)digitalRead(PIN_SW_BT1);  //Invert So it Behaves like the limit SW
   stateSW_BT2    = 1-(int)digitalRead(PIN_SW_BT2);  //Invert So it Behaves like the limit SW
   stateSW_BT3    = 1-(int)digitalRead(PIN_SW_BT3);  //Invert So it Behaves like the limit SW
   stateSW_BT4    = 1-(int)digitalRead(PIN_SW_BT4);  //Invert So it Behaves like the limit SW
   stateSW_BT5    = 1-(int)digitalRead(PIN_SW_BT5);  //Invert So it Behaves like the limit SW
+
+  //LIMIT SW - Update States
+  stateSW_XL    = 1-(int)digitalRead(PIN_SW_XL);  //Invert So it Behaves like the limit SW
+  stateSW_XR    = 1-(int)digitalRead(PIN_SW_XR);  //Invert So it Behaves like the limit SW
+  stateSW_YF    = 1-(int)digitalRead(PIN_SW_YF);  //Invert So it Behaves like the limit SW
+  stateSW_ZT    = 1-(int)digitalRead(PIN_SW_ZT);  //Invert So it Behaves like the limit SW
+  stateSW_PB    = 1-(int)digitalRead(PIN_SW_PB);  //Invert So it Behaves like the limit SW
+
+
+
 
 }
 

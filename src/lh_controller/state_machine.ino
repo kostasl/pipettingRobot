@@ -91,6 +91,12 @@ void handleStopStateEvents()
           }
          }
 
+            //Interrupt Button/
+         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+          nextState = IDLE;
+         }
+
+
      
       break;
       
@@ -174,6 +180,11 @@ void handleStopStateEvents()
         nextState = IDLE;
       break;
       
+      case POS_ERROR:
+        
+        nextState = HOMING;
+      break;
+      
       default: //Uknown option
         nextState = IDLE; //Reset Next State to current
     }
@@ -201,9 +212,9 @@ void handleStartStateEvents()
       case HOMING:
 
         reset(); //Reset Motor Speeds / Accell
+        stepperZ.moveTo(-20000);
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
-        stepperZ.moveTo(-20000);
         stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
         
 
@@ -220,7 +231,7 @@ void handleStartStateEvents()
 
        stepperX.runToNewPosition(50);
        stepperY.runToNewPosition(50);
-       stepperZ.runToNewPosition(100);
+       stepperZ.runToNewPosition(1500);
        stepperP.runToNewPosition(-2500);
 
         
@@ -264,7 +275,7 @@ void handleStartStateEvents()
         }
         Serial.println(buff);
 
-        stateTimeOut =  millis()  + 20000; //Give 10sec timeout until move executes
+        stateTimeOut =  millis()  + 30000; //Give 30sec timeout until move executes
         systemState = TEST_RUN;
       }
       break;
@@ -345,7 +356,18 @@ void handleStartStateEvents()
           systemState = RESET;
 
       break;
-      
+
+      case POS_ERROR:
+         stateTimeOut =  millis()  + 3000; //Give 10sec timeout until move executes
+         if (checkHoming() > 0) //Recheck
+         {         
+           Serial.println("ERR101 - lim sw hit while replay");
+           dispState();
+           display.display();
+           systemState = POS_ERROR;
+         }
+         
+      break;
 
       default: //Uknown option
         nextState = systemState; //Reset Next State to current
