@@ -50,7 +50,7 @@ int checkHoming()
     if (btn_YB_lim.onPressed()) //Triggered Once When State Changes to pressed
     {      
       //&& stateSW_YB == 1 //Verify SW Press
-        stateSW_YB    = 1-(int)digitalRead(PIN_SW_YB);  //Invert So it Behaves like the limit SW
+       stateSW_YB    = 1-(int)digitalRead(PIN_SW_YB);  //Invert So it Behaves like the limit SW
 
        if (stateSW_YB == 1)  
        {
@@ -122,6 +122,7 @@ int checkHoming()
 
     if (btn_PB_lim.isPressed())
     {
+      
       iret++; //Increment Number of Switches pressed 
 
       if (stepperP.targetPosition() > 1) //Stop Motor only if Pressing Against LIMIT switch
@@ -148,10 +149,14 @@ int checkOutOfRange()
 
   if (btn_XL_lim.onPressed())
   {
-        stepperX.setSpeed(0);
-        display.setCursor(0,disp_LOW_LINE);
-        display.print("X ON");
-        display.display();
+        stateSW_XL    = 1-(int)digitalRead(PIN_SW_XL);  //Invert So it Behaves like the limit SW
+        if (stateSW_XL == 1)
+        {
+          stepperX.setSpeed(0);
+          display.setCursor(0,disp_LOW_LINE);
+          display.print("X ON");
+          display.display();
+        }
   }
   if (btn_XL_lim.isPressed())
   {
@@ -167,10 +172,14 @@ int checkOutOfRange()
   
   if (btn_YF_lim.onPressed())
   {
-        stepperY.setSpeed(0);//Just in case future vers change the above
-        display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
-        display.print("Y ON");
-        display.display(); //These Calls CAuse jitter
+        stateSW_YF    = 1-(int)digitalRead(PIN_SW_YF);  //Invert So it Behaves like the limit SW
+        if (stateSW_YF == 1)
+        {
+          stepperY.setSpeed(0);//Just in case future vers change the above
+          display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
+          display.print("Y ON");
+          display.display(); //These Calls CAuse jitter
+        }
   }
   if (btn_YF_lim.isPressed())
   {

@@ -213,18 +213,15 @@ else
   int limCnt = 0;
   //Check Limit Switch sensors and Stop Motion If needed Stop
   limCnt = checkHoming();
-  //delay(1);
-  limCnt += checkHoming();
-  limCnt += checkHoming();
 
   //if (systemState != HOMING) //If LimitOut SW are pressed Speed is set to 0/ So dont do this when homing
   limCnt += checkOutOfRange();
 
   ////---CONSERVATIVE ERROR HANDLE - Raise error if SW is pressed while robot is moving/replay position
   //If Switched pressed while replay, then Hault Robot- Report Error
-  if (limCnt > 3  && (systemState != HOMING && systemState != HOME && systemState != IDLE && systemState != JOYSTICK))
+  if (limCnt > 0  && (systemState != HOMING && systemState != HOME && systemState != IDLE && systemState != JOYSTICK))
   {
-   //nextState = POS_ERROR;
+  // nextState = POS_ERROR;
   }
   
   //Read Buttons And Limit Switches
@@ -321,7 +318,7 @@ void prog_init(t_program*& prog)
   prog->protoPos = newpos; //First Position
   prog->epiPos   = newpos; //Current Position
   prog->telosPos = newpos; //Last Position
-  strcpy(prog->progname,"EOS.PRG"); //Name of 1st Program
+  strcpy(prog->progname,"EOS2.PRG"); //Name of 1st Program
 
 }
 

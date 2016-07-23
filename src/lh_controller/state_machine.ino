@@ -341,7 +341,7 @@ void handleStartStateEvents()
       {
   
         //prog_clearPoslist(savedPrograms[0]);
-        savedPrograms[0] = loadProgram(("EOS.PRG"));      
+        savedPrograms[0] = loadProgram(("EOS2.PRG"));      
       
         systemState = LOAD_PROGRAM;
       }
