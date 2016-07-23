@@ -36,6 +36,7 @@
   11/07/16 Fixed bug above, was due to using free instead of delete/new combination for dyn memory alloc/dealloc
   23/07/16 Added Conservative error handling to avoid colission with Limit SW glitch //Was not enough-> Added manual dig pin read of SW in checkHoming to verify what the RDBButton Reads -
             This seems fix the glitch! prob bug in RDBLibrary!
+            *Need to add HOMING before any Prog execution  - Also need to make SW clitches captured during replay
 */
 
 #include <AccelStepper.h>
