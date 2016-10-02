@@ -53,8 +53,17 @@ void handleStopStateEvents()
 
       
       case HOME: //3 //Reached Home - Stay Here Unclick Switches
-
-           nextState = HOME;
+            //If  a program has been loaded / Run It
+           char buff[100];
+           sprintf(buff,("Prog Opened  %s has n:%d"),savedPrograms[0]->progname,savedPrograms[0]->posCount);
+           Serial.println(buff); 
+            if (savedPrograms[0]->posCount > 1)
+            {
+                nextState = TEST_RUN;
+            }else //if not then wait until state timesout to IDLE
+             {
+                nextState = HOME;
+             }
       break;      
 
       
@@ -85,7 +94,8 @@ void handleStopStateEvents()
             //Reset Program To Beginning 
             savedPrograms[0]->epiPos = savedPrograms[0]->protoPos;
             
-            //- Go Back HOME
+            //- Go Back HOME after reset to Unload Program
+            reset();
             nextState = HOMING;
             ///iposCurrentIndex = 0;
           }
@@ -104,7 +114,7 @@ void handleStopStateEvents()
  
         stepperY.setMaxSpeed(2*abs(posJRy));
         stepperX.setMaxSpeed(2*abs(posJRx));
-        stepperZ.setMaxSpeed(2000);
+        stepperZ.setMaxSpeed(2300);
         stepperP.setMaxSpeed(1500);
         stepperZ.setAcceleration(2500);   
 
@@ -155,8 +165,8 @@ void handleStopStateEvents()
             nextState = SAVE_POSITION;
          }
 
-        if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
-            nextState = TEST_RUN;
+        if (stateSW_BT3 == 1){ //Click So as to save POsitions to file
+            nextState = SAVE_PROGRAM;
          }
 
            
@@ -171,9 +181,13 @@ void handleStopStateEvents()
           nextState = SAVE_POSITION;
 
       break;
+      case SAVE_PROGRAM:
+          nextState = HOMING;
+      break;
 
       case LOAD_PROGRAM:
-        nextState = TEST_RUN;
+        nextState = HOMING; //First Do Homing before Running Program
+        //nextState = TEST_RUN;
       break;
       
       case RESET:
@@ -200,6 +214,7 @@ void handleStartStateEvents()
       char buff[130];
 
       case IDLE:
+        reset(); //Reset Motor Speeds / Accell
 
         stepperX.stop();
         stepperY.stop();
@@ -210,9 +225,9 @@ void handleStartStateEvents()
       break;
       
       case HOMING:
-
-        reset(); //Reset Motor Speeds / Accell
-        stepperZ.moveTo(-20000);
+        setMotorSpeeds(); //replaced Reset with Just Setting Motors
+        //reset()
+        stepperZ.moveTo(-25000);
         stepperX.moveTo(-8000); 
         stepperY.moveTo(-8000);
         stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
@@ -231,27 +246,19 @@ void handleStartStateEvents()
 
        stepperX.runToNewPosition(50);
        stepperY.runToNewPosition(50);
-       stepperZ.runToNewPosition(1500);
+       stepperZ.runToNewPosition(3500);
        stepperP.runToNewPosition(-2500);
 
         
         systemState = HOME;
         
-        stateTimeOut =  millis() + 3000; 
+        stateTimeOut =  millis() + 4000; 
       break;
       
 
       case TEST_RUN:
       {
-        stepperX.setAcceleration(1500); 
-        stepperY.setAcceleration(1500);   
-        stepperZ.setAcceleration(1500);   
-        stepperP.setAcceleration(1500);
-
-        stepperX.setMaxSpeed(2000);
-        stepperY.setMaxSpeed(2000);
-        stepperZ.setMaxSpeed(2000);
-        stepperP.setMaxSpeed(2000);
+        setMotorSpeeds(); //replaced Reset with Just Setting Motors
 
         prog_position* nxtpos;
         nxtpos = savedPrograms[0]->epiPos;
@@ -275,7 +282,7 @@ void handleStartStateEvents()
         }
         Serial.println(buff);
 
-        stateTimeOut =  millis()  + 30000; //Give 30sec timeout until move executes
+        stateTimeOut =  millis()  + 35000; //Give 30sec timeout until move executes
         systemState = TEST_RUN;
       }
       break;
@@ -288,7 +295,7 @@ void handleStartStateEvents()
       case JOYSTICK:
           systemState = JOYSTICK;
           
-          stateTimeOut =  millis()+65000; //With timeout
+          stateTimeOut =  millis()+75000; //With timeout
       
       break;
 

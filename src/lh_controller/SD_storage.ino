@@ -129,7 +129,7 @@ t_program* loadProgram(char* progname)
     return 0; 
   } 
 
-    sprintf(buff,("Prog Opened  %s has n:"),prog->progname,prog->posCount);
+    sprintf(buff,("Prog Opened  %s has n:%d"),prog->progname,prog->posCount);
     Serial.println(buff); 
   
   //Load Each Position

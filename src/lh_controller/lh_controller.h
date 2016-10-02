@@ -158,5 +158,8 @@ void handleStopStateEvents(); //Checks conditions for when current state end and
 int handleSerialCmd();
 
 void dispWelcome();
+void reset();
+void setMotorSpeeds();
+
 
 

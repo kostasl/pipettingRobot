@@ -23,6 +23,10 @@
     file and pass address of GFXfont struct to setFont().  Pass NULL to
     revert to 'classic' fixed-space bitmap font.
 
+    User interface: 5 buttons on right hand           + Joystick with Button On Left Hand
+    1 2 1: Up Z Axis , 2: Up Pipette Axis              Button  (When Idle )starts programming mode (Prg Mode) Save position
+     3  3: (When Idle Load & execute SD program) (Prog Mode) Stops Program Mode/Replays Saved Program       
+    4 5 4: Down Z Axis, 5: Down Pipetter
 // Note Any imported library is copied to the local sketchbook subfolder
 //// Revision and Notes
 // 26/5/16: -Bug : I changed something and the accelleration to Homing Has failed
@@ -85,7 +89,6 @@ void setup() {
   
   Serial.print(F("*Set Welcome Screen * \n"));
   dispWelcome();
-
   display.clearDisplay();
   display.display();
   Serial.print(F("*Done * \n"));
@@ -176,7 +179,7 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
 
   //Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
   memset(savedPrograms,0,sizeof(t_program*)*MAX_POSITIONS); //Set to 0 For non-inited
-  //reset(); //Homing Will Call Reset
+  reset(); //IDLE Will Call Reset
   
 } //End Of Setup
 
@@ -269,22 +272,12 @@ void reset()
 {
   
   //Initially savedPrograms[0] = 0;
-  //memset(savedPrograms,0,sizeof(t_program*)*MAX_POSITIONS); //Set to 0 For non-inited
   
   Serial.println("Prog Pointer:");
   Serial.print((unsigned int)savedPrograms[0]);
   
-  prog_init(savedPrograms[0]);
+  prog_init(savedPrograms[0]); //Empties List
   
-  stepperX.setMaxSpeed(1500);
-  stepperY.setMaxSpeed(1500);
-  stepperZ.setMaxSpeed(2000);
-  stepperP.setMaxSpeed(1000);
-
-  stepperX.setAcceleration(1500); 
-  stepperY.setAcceleration(1500);   
-  stepperZ.setAcceleration(2500);   
-  stepperP.setAcceleration(1500);
 
 
   //savedPositions[0] = (t_position)800,800,200,100};
@@ -292,6 +285,20 @@ void reset()
   iposCurrentIndex=0;
 }
 
+//Called When INit or After Homing
+void setMotorSpeeds()
+{
+  stepperX.setMaxSpeed(1500);
+  stepperY.setMaxSpeed(1500);
+  stepperZ.setMaxSpeed(6000);
+  stepperP.setMaxSpeed(1000);
+
+  stepperX.setAcceleration(1500); 
+  stepperY.setAcceleration(1500);   
+  stepperZ.setAcceleration(2500);   
+  stepperP.setAcceleration(1500);
+
+}
 
 //Initializes a new Program Data structure 
 //If pointer not empty then it deletes the existing structure first 

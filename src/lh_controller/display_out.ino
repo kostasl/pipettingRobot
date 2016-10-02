@@ -197,6 +197,17 @@ void dispState()
         
       break;
 
+      case SAVE_PROGRAM:
+        display.setCursor(0,11);
+        sprintf(buff," Saved to SD card", iposSaveIndex);
+        display.println(buff);
+        display.setFont();
+        sprintf(buff,"%s ",savedPrograms[0]->progname);
+
+        display.println(buff);
+
+      break;
+
       case RESET:
         display.setCursor(0,11);
         display.print(iposSaveIndex);
