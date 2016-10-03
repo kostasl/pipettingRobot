@@ -55,8 +55,8 @@ void handleStopStateEvents()
           nextState = HOME;
         }else
         {//Refresh Move command Until Limit Switch is hit
-          stepperZ.move(-5000);
-          stepperP.move(5000);
+          //stepperZ.move(-5000);
+          //stepperP.move(500);
           //stepperX.move(-5000);
           //stepperY.move(-5000);
 
