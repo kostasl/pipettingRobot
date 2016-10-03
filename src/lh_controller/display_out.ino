@@ -135,14 +135,11 @@ void dispState()
       char buff[130];  
 
       case IDLE: //1
-        display.setCursor(0,11);
-        display.println(TXT_TITLE); 
-        display.setTextColor( WHITE,BLACK); // 'inverted' text     
-        //display.setCursor(0,20);
-        display.setCursor(0,28);
-
-        display.println(" -Ready-");
-       
+        display.setFont(NULL);      
+        display.setCursor(10,0);
+        display.println("~Load Program~");         
+        
+        displayPrograms(filelistStartIndex,5);       
        break;
        
       case HOME: 
@@ -246,6 +243,51 @@ void dispState()
   
   //display.display();
 
+}
+
+void displayPrograms(int startIndex,int Nlim) //Display 
+{
+  File dir = SD.open("/");
+  String filename;
+  int n = 0; //Displayed File count
+  
+  while (n <= (Nlim)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
+
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+    }
+
+   filename = entry.name();
+   if (!entry.isDirectory() && filename.endsWith("PRG")){
+      n++;
+     //Display Files 
+      if (startIndex <= n ) {
+        if (startIndex == n) //File Showing Top on List  Is the SelectedFile
+          selectedProgramFile = filename;
+          
+        //Check if this File Is the currently selected one
+        if (filename == selectedProgramFile)
+        {
+          display.setTextColor( BLACK,WHITE); //Show As Selected
+        }
+        else
+         {
+            display.setTextColor(WHITE, BLACK); //Show As Selected 
+         }
+        display.setCursor(0,10+10*(n-startIndex));
+        display.print(filename);
+        display.setCursor(75,10+10*(n-startIndex));
+        display.print(entry.size());
+      }
+   }
+
+    entry.close();
+  } //EnD While Loop
+
+  dir.close();
+  
 }
 
 /////////////////END DISPLAY CODE ////////////////

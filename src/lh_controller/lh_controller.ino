@@ -41,6 +41,8 @@
   23/07/16 Added Conservative error handling to avoid colission with Limit SW glitch //Was not enough-> Added manual dig pin read of SW in checkHoming to verify what the RDBButton Reads -
             This seems fix the glitch! prob bug in RDBLibrary!
             *Need to add HOMING before any Prog execution  - Also need to make SW clitches captured during replay
+            
+  02/10/16 Added homing before program loading, remove reset at homing
 */
 
 #include <AccelStepper.h>
@@ -98,8 +100,6 @@ void setup() {
   stepperX.setEnablePin(PIN_MOTOR_X_EN);
   stepperX.setPinsInverted(true,true,true);
   stepperX.setCurrentPosition(0);  
-  //stepperX.setMaxSpeed(1500);
-  //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   //steppers.addStepper(stepperX);
 
@@ -107,8 +107,6 @@ void setup() {
   stepperY.setPinsInverted(true,true,true);
   stepperY.setCurrentPosition(0);
  	
-  //stepperY.setMaxSpeed(1500);
-  //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   //steppers.addStepper(stepperY);
 
@@ -116,8 +114,6 @@ void setup() {
   stepperZ.setPinsInverted(true,true,true);
   stepperZ.setCurrentPosition(0);
   
-  //stepperZ.setMaxSpeed(2000);
-  //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   //steppers.addStepper(stepperZ);
 
@@ -125,12 +121,6 @@ void setup() {
   stepperP.setPinsInverted(true,true,true); //Not Inverting Direction - +ve are towards Home Switches
   stepperP.setCurrentPosition(0);
      
-  
-
-
-  
-  
-  //stepper2.setMaxSpeed(100);
   // Then give them to MultiStepper to manage
   //steppers.addStepper(stepperP);
 
@@ -214,6 +204,8 @@ else
     //Add State Events Events In Following function
     handleStopStateEvents();
 
+//On Idle We show A menu On Every Cycle
+
   int limCnt = 0;
   //Check Limit Switch sensors and Stop Motion If needed Stop
   limCnt = checkHoming();
@@ -273,8 +265,8 @@ void reset()
   
   //Initially savedPrograms[0] = 0;
   
-  Serial.println("Prog Pointer:");
-  Serial.print((unsigned int)savedPrograms[0]);
+  Serial.print("\nProg Pointer: ");
+  Serial.println((unsigned int)savedPrograms[0]);
   
   prog_init(savedPrograms[0]); //Empties List
   
@@ -288,13 +280,13 @@ void reset()
 //Called When INit or After Homing
 void setMotorSpeeds()
 {
-  stepperX.setMaxSpeed(1500);
-  stepperY.setMaxSpeed(1500);
+  stepperX.setMaxSpeed(2500);
+  stepperY.setMaxSpeed(2500);
   stepperZ.setMaxSpeed(6000);
-  stepperP.setMaxSpeed(1000);
+  stepperP.setMaxSpeed(1500);
 
-  stepperX.setAcceleration(1500); 
-  stepperY.setAcceleration(1500);   
+  stepperX.setAcceleration(1800); 
+  stepperY.setAcceleration(1800);   
   stepperZ.setAcceleration(2500);   
   stepperP.setAcceleration(1500);
 
@@ -308,7 +300,7 @@ void prog_init(t_program*& prog)
   if (prog != 0)
   {
     prog_clearPoslist(prog);
-    delete(prog);
+    //delete(prog);
   }
 
   

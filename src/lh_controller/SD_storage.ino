@@ -24,6 +24,7 @@
 
 
 void printDirectory(File dir, int numTabs) {
+ String filename;
   while (true) {
 
     File entry =  dir.openNextFile();
@@ -34,7 +35,13 @@ void printDirectory(File dir, int numTabs) {
     for (uint8_t i = 0; i < numTabs; i++) {
       Serial.print('\t');
     }
-    Serial.print(entry.name());
+    filename = entry.name();
+    Serial.print(filename);
+    if ((selectedProgramFile.length() < 2)  && filename.endsWith("PRG"))
+    {
+      selectedProgramFile = filename;
+    }
+    
     if (entry.isDirectory()) {
       Serial.println("/");
       printDirectory(entry, numTabs + 1);
@@ -109,7 +116,7 @@ void testReadWrite()
 //} t_program;
 //Function Loads Program header and list of positions - Memory is not loaded as a block, pointers need to be reinstated
 //So assigns the right pointers as it loads
-t_program* loadProgram(char* progname)
+t_program* loadProgram(const char* progname)
 {
   t_program* prog = new t_program;
   int cnt = 0;
@@ -125,7 +132,7 @@ t_program* loadProgram(char* progname)
     progFile.read(prog,sizeof(t_program));
   else
   {
-    Serial.println(F("Loading failted"));
+    Serial.println(F("Loading failed!"));
     return 0; 
   } 
 

@@ -32,6 +32,20 @@ void handleStopStateEvents()
            display.println("LOAD PROGRAM \n EOS.PRG");
            display.display();
          }
+
+         //Shift Selected File With Joystick Movement
+         if (posJRy > LH_MIN_JOY_MOVE)
+         {
+            filelistStartIndex++;
+            Serial.println(filelistStartIndex);
+         }
+         if (posJRy < -LH_MIN_JOY_MOVE)
+            filelistStartIndex--;
+
+
+          dispState();
+          display.display();
+
       break;
 
       case HOMING: //2
@@ -54,9 +68,9 @@ void handleStopStateEvents()
       
       case HOME: //3 //Reached Home - Stay Here Unclick Switches
             //If  a program has been loaded / Run It
-           char buff[100];
-           sprintf(buff,("Prog Opened  %s has n:%d"),savedPrograms[0]->progname,savedPrograms[0]->posCount);
-           Serial.println(buff); 
+//           char buff[100];
+//           sprintf(buff,("Prog Opened  %s has n:%d"),savedPrograms[0]->progname,savedPrograms[0]->posCount);
+//           Serial.println(buff); 
             if (savedPrograms[0]->posCount > 1)
             {
                 nextState = TEST_RUN;
@@ -252,7 +266,7 @@ void handleStartStateEvents()
         
         systemState = HOME;
         
-        stateTimeOut =  millis() + 4000; 
+        stateTimeOut =  millis() + 3000; 
       break;
       
 
@@ -348,9 +362,15 @@ void handleStartStateEvents()
       {
   
         //prog_clearPoslist(savedPrograms[0]);
-        savedPrograms[0] = loadProgram(("EOS2.PRG"));      
-      
-        systemState = LOAD_PROGRAM;
+        savedPrograms[0] = loadProgram((selectedProgramFile.c_str()));      
+
+        if (savedPrograms[0])
+            systemState = LOAD_PROGRAM;
+        else
+          {
+           display.println("Error Loading file");
+           display.display();
+          }
       }
       break;
 

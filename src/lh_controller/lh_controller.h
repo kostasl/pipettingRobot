@@ -150,6 +150,8 @@ String inputString                 = "";         // a string to hold incoming da
 unsigned long stateTimeOut         = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
 unsigned long stateReportInterval  =  0; //Used to Time a frequent serial output to host. so port does not freeze
 
+int filelistStartIndex = 0; //For Listing Programs, start 
+String selectedProgramFile;
 
 // Function Prototypes
 int checkHoming(); //Check homing conditions and set pos to 0 when reached
