@@ -50,6 +50,8 @@
 
 #define BTN_DEBOUNCE_TIMEMS 100 //DEbounce of LImit Switches in ms
 
+#define MAX_NUMBER_OF_FILES 10 //Define Size of filename holding array
+
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
 RBD::Button btn_XR_lim(PIN_SW_XR);
@@ -150,8 +152,14 @@ String inputString                 = "";         // a string to hold incoming da
 unsigned long stateTimeOut         = 0; //An Auxiliary var to set when a state expires and system returns to IDLE
 unsigned long stateReportInterval  =  0; //Used to Time a frequent serial output to host. so port does not freeze
 
-int filelistStartIndex = 0; //For Listing Programs, start 
+//File Loading Variables
+String gstr_progfilenames[MAX_NUMBER_OF_FILES]; //Pointer to Array of String Filenames
+int gi_filelistSelectedIndex  = 0; //For Listing Programs, start 
+int gi_numberOfProgFiles      = 0; //For Listing Programs, start 
+int gi_startindexFileList     = 0; //Used For Scrolling Down List indicates First Element
 String selectedProgramFile;
+
+
 
 // Function Prototypes
 int checkHoming(); //Check homing conditions and set pos to 0 when reached

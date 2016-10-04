@@ -22,25 +22,20 @@ void handleStopStateEvents()
          nextState = IDLE;
 
          if (btn_JR_lim.onPressed()){
-           nextState = JOYSTICK;
-           display.println("BUTTON");
-           display.display();
-         }
-         
-         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
-           nextState = LOAD_PROGRAM;
-           display.println("LOAD PROGRAM \n EOS.PRG");
-           display.display();
+           if (selectedProgramFile == "NEW PROGRAM"){
+              nextState = JOYSTICK;
+           }
+           else{ //Load the selected File 
+               nextState = LOAD_PROGRAM;
+           }
          }
 
          //Shift Selected File With Joystick Movement
-         if (posJRy > LH_MIN_JOY_MOVE)
-         {
-            filelistStartIndex++;
-            Serial.println(filelistStartIndex);
-         }
-         if (posJRy < -LH_MIN_JOY_MOVE)
-            filelistStartIndex--;
+         if (posJRy > LH_MIN_JOY_MOVE && gi_filelistSelectedIndex > 0)
+            gi_filelistSelectedIndex--;
+         
+         if (posJRy < -LH_MIN_JOY_MOVE && gi_filelistSelectedIndex < gi_numberOfProgFiles)
+            gi_filelistSelectedIndex++;
 
 
           dispState();
@@ -48,22 +43,28 @@ void handleStopStateEvents()
 
       break;
 
-      case HOMING: //2
+      case HOMING: //2 //Focuses on lifting the Z axis out of Vials
         //Check if a PUMP Move has been completed
-        if (checkHoming() > 3) 
+        if (checkHoming() > 3)  //Homing is complete Anyway
         {
           nextState = HOME;
         }else
-        {//Refresh Move command Until Limit Switch is hit
-          //stepperZ.move(-5000);
-          //stepperP.move(500);
-          //stepperX.move(-5000);
-          //stepperY.move(-5000);
-
+        if (stepperZ.distanceToGo() < 100) //Carry on With Stage 2 Homing 
+        {
+          nextState = HOMING_XY;
+        }else
           nextState = HOMING;
-        }
       break;
       
+      case HOMING_XY:
+        if (checkHoming() > 3)  //Homing is complete Anyway
+        {
+          nextState = HOME;
+        }else
+          nextState = HOMING_XY;
+        
+             
+      break;
 
       
       case HOME: //3 //Reached Home - Stay Here Unclick Switches
@@ -102,7 +103,7 @@ void handleStopStateEvents()
           }else
           { 
             char buff[60];
-            sprintf(buff,"End of Program at pos i: %d ", savedPrograms[0]->telosPos->seqID);
+            sprintf(buff,(const char*)F("End of Program at pos i: %d "), savedPrograms[0]->telosPos->seqID);
             Serial.println(buff);
             //DOne the sequence 
             //Reset Program To Beginning 
@@ -235,22 +236,32 @@ void handleStartStateEvents()
         stepperZ.stop();
         stepperP.stop();
 
+        gi_numberOfProgFiles = loadProgramFileNames(); //Load File names from SD card
+
         systemState = IDLE;
       break;
       
-      case HOMING:
+      case HOMING: //DO Partial Z and P axis First, Then Follow up with XY
         setMotorSpeeds(); //replaced Reset with Just Setting Motors
-        //reset()
-        stepperZ.moveTo(-25000);
-        stepperX.moveTo(-8000); 
-        stepperY.moveTo(-8000);
-        stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
-        
+
+        stepperZ.moveTo(-5000);
+        stepperP.moveTo(6000); //It will hit Limit Switch So Distance Doesnt matter
+
 
         stateTimeOut =  millis()+85000; //With timeout
         systemState = HOMING;
       break;
 
+      case HOMING_XY: //Used so Z axis Is lifted 1st before the others such that we avoid homing while in a vial
+        setMotorSpeeds(); //replaced Reset with Just Setting Motors
+        stepperZ.moveTo(-25000);
+        stepperX.moveTo(-26000); 
+        stepperY.moveTo(-26000);
+
+        
+        systemState = HOMING_XY;
+      break;
+      
       case HOME: //nOW sYTEM REACHED hOME / Release SWitches    
       //For Some Reason Using the Main Loop With Move To Does not Work / Need todo a blocking call here
        stepperX.setCurrentPosition(0);
@@ -282,7 +293,7 @@ void handleStartStateEvents()
         stepperZ.moveTo(nxtpos->Zpos);
         stepperP.moveTo(nxtpos->Ppos);
 
-        sprintf(buff,"Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
+        sprintf(buff,(const char*)F("Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
         ////INcrement tonext Position  if not at end
         if (savedPrograms[0]->epiPos != savedPrograms[0]->telosPos)   
         {
@@ -335,7 +346,7 @@ void handleStartStateEvents()
             savedPrograms[0]->posCount++;
             
             //char buff[130];
-            sprintf(buff,"Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savedPrograms[0]->telosPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            sprintf(buff,(const char*)F("Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savedPrograms[0]->telosPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
             //free(newpos);
@@ -348,6 +359,11 @@ void handleStartStateEvents()
       
       case SAVE_PROGRAM:
       {
+        //Set Prog Name To Incremented file
+        String filename = "EOS_";
+        filename += String(gi_numberOfProgFiles+1) + String(".PRG");
+        strcpy(savedPrograms[0]->progname,filename.c_str());
+        
         saveProgram(*savedPrograms); //Save the 1st Program
 
         fileroot = SD.open("/");
@@ -388,7 +404,7 @@ void handleStartStateEvents()
          stateTimeOut =  millis()  + 3000; //Give 10sec timeout until move executes
          if (checkHoming() > 0) //Recheck
          {         
-           Serial.println("ERR101 - lim sw hit while replay");
+           Serial.println(F("ERR101 - lim sw hit while replay"));
            dispState();
            display.display();
            systemState = POS_ERROR;

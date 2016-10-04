@@ -43,6 +43,7 @@
             *Need to add HOMING before any Prog execution  - Also need to make SW clitches captured during replay
             
   02/10/16 Added homing before program loading, remove reset at homing
+  04/10/16 Added 2 stage Homing (z 1st, then XYP), added menu scroll for loading and adding new program, changed to JoyButton for select
 */
 
 #include <AccelStepper.h>
@@ -155,13 +156,13 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
 
 ///SD Card Init /cHIP Select is on 53 (which is also the SPI default)
 
-  Serial.print("Initializing SD card...");
+  Serial.print(F("Initializing SD card..."));
 
   if (!SD.begin(53)) {
-    Serial.println("initialization failed!");
+    Serial.println(F("initialization failed!"));
     return;
   }
-  Serial.println("initialization done.");
+  Serial.println(F("initialization done."));
 
   fileroot = SD.open("/");
   printDirectory(fileroot, 0);
@@ -300,9 +301,8 @@ void prog_init(t_program*& prog)
   if (prog != 0)
   {
     prog_clearPoslist(prog);
-    //delete(prog);
+    delete(prog); //avoid this
   }
-
   
   
   //Init Prog / Create 1st defaultPosition where all programs start from
@@ -318,7 +318,7 @@ void prog_init(t_program*& prog)
   prog->protoPos = newpos; //First Position
   prog->epiPos   = newpos; //Current Position
   prog->telosPos = newpos; //Last Position
-  strcpy(prog->progname,"EOS2.PRG"); //Name of 1st Program
+  strcpy(prog->progname,("NEW PROGRAM")); //Name of 1st Program
 
 }
 

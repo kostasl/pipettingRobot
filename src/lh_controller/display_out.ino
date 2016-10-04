@@ -139,7 +139,7 @@ void dispState()
         display.setCursor(10,0);
         display.println("~Load Program~");         
         
-        displayPrograms(filelistStartIndex,5);       
+        displayPrograms(gi_startindexFileList,gi_filelistSelectedIndex);       
        break;
        
       case HOME: 
@@ -245,49 +245,51 @@ void dispState()
 
 }
 
-void displayPrograms(int startIndex,int Nlim) //Display 
+//Display On Joystick Screen the List of PRG files 
+//Return the number of PRG programs Found
+int displayPrograms(int& startIndex,int selectedIndex) //Display 
 {
-  File dir = SD.open("/");
-  String filename;
+  int Nlim = 6;
   int n = 0; //Displayed File count
-  
+
+  if (( selectedIndex - startIndex) >  Nlim) //If Selection exceeds page size, start listing further down, so it scrolls
+      startIndex++;
+
+
+      
   while (n <= (Nlim)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
 
-    File entry =  dir.openNextFile();
-    if (! entry) {
+    if (gstr_progfilenames[n].length() < 2) {
       // no more files
       break;
     }
+    
 
-   filename = entry.name();
-   if (!entry.isDirectory() && filename.endsWith("PRG")){
-      n++;
-     //Display Files 
+     //Display Files after skipping startIndex ones
       if (startIndex <= n ) {
-        if (startIndex == n) //File Showing Top on List  Is the SelectedFile
-          selectedProgramFile = filename;
           
         //Check if this File Is the currently selected one
-        if (filename == selectedProgramFile)
+        if ((n+startIndex) == selectedIndex)
         {
-          display.setTextColor( BLACK,WHITE); //Show As Selected
+           selectedProgramFile = gstr_progfilenames[n];
+          
+           display.setTextColor( BLACK,WHITE); //Show As Selected
         }
         else
-         {
-            display.setTextColor(WHITE, BLACK); //Show As Selected 
-         }
+        {
+           display.setTextColor(WHITE, BLACK); //Show As Selected 
+        }
         display.setCursor(0,10+10*(n-startIndex));
-        display.print(filename);
-        display.setCursor(75,10+10*(n-startIndex));
-        display.print(entry.size());
+        display.print(gstr_progfilenames[n]);
+//        display.setCursor(75,10+10*(n-startIndex));
+//        display.print(entry.size());
       }
-   }
 
-    entry.close();
+      n++;
+
   } //EnD While Loop
 
-  dir.close();
-  
+  return n;
 }
 
 /////////////////END DISPLAY CODE ////////////////

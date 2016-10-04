@@ -54,41 +54,6 @@ void printDirectory(File dir, int numTabs) {
   }
 }
 
-void testReadWrite()
-{
-  // open the file. note that only one file can be open at a time,
-    // so you have to close this one before opening another.
-    File myFile = SD.open("test.txt", FILE_WRITE);
-  
-    // if the file opened okay, write to it:
-    if (myFile) {
-      Serial.print("Writing to test.txt...");
-      myFile.println("testing 1, 2, 3.");
-      // close the file:
-      myFile.close();
-      Serial.println("done.");
-    } else {
-      // if the file didn't open, print an error:
-      Serial.println("error opening test.txt");
-    }
-  
-    // re-open the file for reading:
-    myFile = SD.open("test.txt");
-    if (myFile) {
-      Serial.println("test.txt:");
-  
-      // read from the file until there's nothing else in it:
-      while (myFile.available()) {
-        Serial.write(myFile.read());
-      }
-      // close the file:
-      myFile.close();
-    } else {
-      // if the file didn't open, print an error:
-      Serial.println("error opening test.txt");
-    }
-}
-
 
 
 // Defines a target position to which the robot will move into - Coords defined as stepper positions
@@ -136,7 +101,7 @@ t_program* loadProgram(const char* progname)
     return 0; 
   } 
 
-    sprintf(buff,("Prog Opened  %s has n:%d"),prog->progname,prog->posCount);
+    sprintf(buff,((const char*)F("Prog Opened  %s has n:%d")),prog->progname,prog->posCount);
     Serial.println(buff); 
   
   //Load Each Position
@@ -162,7 +127,7 @@ t_program* loadProgram(const char* progname)
       }
 
       
-       sprintf(buff,"SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", prog->telosPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
+       sprintf(buff,(const char*)F("SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), prog->telosPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
        Serial.println(buff);
      
       cnt++;
@@ -181,9 +146,10 @@ int saveProgram(t_program* prog)
   int cnt = 0;
   char buff[100];
   
-  sprintf(buff,"--SD - Saving program: %s",prog->progname);
+  sprintf(buff,(const char*)F("-SD - Saving program: %s"),prog->progname);
   Serial.println(buff); 
 
+  
   //Delete File if it exists
   if (SD.exists(prog->progname))
      SD.remove(prog->progname); 
@@ -202,7 +168,7 @@ int saveProgram(t_program* prog)
   {
 
    //sprintf(buff,"SD Saving pos. i: %d",savePos->seqID);
-   sprintf(buff,"SD. Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld ", savePos->seqID, savePos->Xpos, savePos->Ypos, savePos->Zpos,savePos->Ppos );
+   sprintf(buff,(const char*)F("SD. Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savePos->seqID, savePos->Xpos, savePos->Ypos, savePos->Zpos,savePos->Ppos );
    Serial.println(buff);
    
    progFile.write((uint8_t*)savePos,sizeof(prog_position));
@@ -213,10 +179,49 @@ int saveProgram(t_program* prog)
    cnt++;
   }
 
-  Serial.println("Done Saving");
+  Serial.println(F("Done Saving"));
   //Close File
   progFile.close();
   return 1; //Success
 
 }
+
+
+
+//Populates a list of Strings with the PRG file names Found gstr_progfilenames
+int loadProgramFileNames()
+{
+  Serial.println(F("Load PRG Files"));
+
+  File dir = SD.open("/");
+  String filename;
+  int n = 0; //Displayed File count
+
+  gstr_progfilenames[0] = String(F("NEW PROGRAM"));
+  n++;
+  while (n <= (MAX_NUMBER_OF_FILES)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
+
+    File entry =  dir.openNextFile();
+    if (!entry) {
+      // no more files
+      Serial.println(F("~~"));
+      
+      break;
+    }
+
+   filename = entry.name();
+   if (!entry.isDirectory() && filename.endsWith("PRG")){
+     //Populate File List
+      gstr_progfilenames[n] = String(filename);
+      Serial.println(gstr_progfilenames[n]);
+      n++;
+   }
+
+    entry.close();
+  } //EnD While Loop
+
+  dir.close();
+  return n;
+}
+
 
