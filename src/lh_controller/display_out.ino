@@ -249,11 +249,13 @@ void dispState()
 //Return the number of PRG programs Found
 int displayPrograms(int& startIndex,int selectedIndex) //Display 
 {
-  int Nlim = 6;
+  int Nlim = 4;
   int n = 0; //Displayed File count
 
   if (( selectedIndex - startIndex) >  Nlim) //If Selection exceeds page size, start listing further down, so it scrolls
-      startIndex++;
+      startIndex++; //Scroll Down
+  if (startIndex > selectedIndex)
+      startIndex--; //scroll Up
 
 
       

@@ -229,6 +229,9 @@ else
     stepperX.run();  
     stepperY.run();
     stepperZ.run();
+    stepperZ.run();
+    stepperZ.run();
+    stepperZ.run();
     stepperP.run();
 
 ////-------------------////

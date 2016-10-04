@@ -31,10 +31,10 @@ void handleStopStateEvents()
          }
 
          //Shift Selected File With Joystick Movement
-         if (posJRy > LH_MIN_JOY_MOVE && gi_filelistSelectedIndex > 0)
+         if (posJRy > LH_MIN_JOY_MOVE && (gi_filelistSelectedIndex > 0))
             gi_filelistSelectedIndex--;
          
-         if (posJRy < -LH_MIN_JOY_MOVE && gi_filelistSelectedIndex < gi_numberOfProgFiles)
+         if ((posJRy < -LH_MIN_JOY_MOVE) && (gi_filelistSelectedIndex <= gi_numberOfProgFiles))
             gi_filelistSelectedIndex++;
 
 
@@ -48,12 +48,13 @@ void handleStopStateEvents()
         if (checkHoming() > 3)  //Homing is complete Anyway
         {
           nextState = HOME;
-        }else
-        if (stepperZ.distanceToGo() < 100) //Carry on With Stage 2 Homing 
-        {
-          nextState = HOMING_XY;
-        }else
-          nextState = HOMING;
+        }else{        
+          if (abs(stepperZ.distanceToGo()) < 50) //Carry on With Stage 2 Homing 
+          {
+            nextState = HOMING_XY;
+          }else
+            nextState = HOMING;
+        }
       break;
       
       case HOMING_XY:
@@ -62,8 +63,7 @@ void handleStopStateEvents()
           nextState = HOME;
         }else
           nextState = HOMING_XY;
-        
-             
+                     
       break;
 
       
@@ -244,9 +244,8 @@ void handleStartStateEvents()
       case HOMING: //DO Partial Z and P axis First, Then Follow up with XY
         setMotorSpeeds(); //replaced Reset with Just Setting Motors
 
-        stepperZ.moveTo(-5000);
+        stepperZ.moveTo(-14000);
         stepperP.moveTo(6000); //It will hit Limit Switch So Distance Doesnt matter
-
 
         stateTimeOut =  millis()+85000; //With timeout
         systemState = HOMING;
@@ -254,10 +253,11 @@ void handleStartStateEvents()
 
       case HOMING_XY: //Used so Z axis Is lifted 1st before the others such that we avoid homing while in a vial
         setMotorSpeeds(); //replaced Reset with Just Setting Motors
-        stepperZ.moveTo(-25000);
+        stepperZ.moveTo(-35000);
         stepperX.moveTo(-26000); 
         stepperY.moveTo(-26000);
 
+        stateTimeOut =  millis()+85000; //With timeout
         
         systemState = HOMING_XY;
       break;
@@ -366,10 +366,12 @@ void handleStartStateEvents()
         
         saveProgram(*savedPrograms); //Save the 1st Program
 
-        fileroot = SD.open("/");
-        printDirectory(fileroot, 0);
-        fileroot.close();
-        
+//        fileroot = SD.open("/");
+//        printDirectory(fileroot, 0);
+//        fileroot.close();
+
+        gi_numberOfProgFiles = loadProgramFileNames();
+        Serial.println(gi_numberOfProgFiles);
         systemState = SAVE_PROGRAM;
       }
       break;
