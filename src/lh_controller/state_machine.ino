@@ -74,7 +74,7 @@ void handleStopStateEvents()
 //           char buff[100];
 //           sprintf(buff,("Prog Opened  %s has n:%d"),savedPrograms[0]->progname,savedPrograms[0]->posCount);
 //           Serial.println(buff); 
-            if (savedPrograms[0]->posCount > 1)
+            if (savedPrograms[0].posCount > 1)
             {
                 nextState = TEST_RUN;
             }else //if not then wait until state timesout to IDLE
@@ -97,7 +97,7 @@ void handleStopStateEvents()
          {
             //displState();
           //Do not Exceed Last saved Position - Check If Next Is Null
-           if (savedPrograms[0]->epiPos !=0)
+           if (savedPrograms[0].epiPos !=0)
            { 
               //iposCurrentIndex++;
              
@@ -105,14 +105,15 @@ void handleStopStateEvents()
           }else
           { 
             char buff[60];
-            sprintf(buff,(const char*)F("End of Program at pos i: %d "), savedPrograms[0]->telosPos->seqID);
+            sprintf(buff,("End of Program at pos i: %d "), savedPrograms[0].telosPos->seqID);
             Serial.println(buff);
             //DOne the sequence 
             //Reset Program To Beginning 
-            savedPrograms[0]->epiPos = savedPrograms[0]->protoPos;
+            //savedPrograms[0].epiPos = savedPrograms[0].protoPos;
+            savedPrograms[0].posCount = 1; //Stop From Running Again
             
-            //- Go Back HOME after reset to Unload Program
-            reset();
+            //- Go Back HOME after and reset to Unload Program
+            //reset();
             nextState = HOMING;
             ///iposCurrentIndex = 0;
           }
@@ -151,7 +152,7 @@ void handleStopStateEvents()
 
         if (stateSW_BT1 == 1)
         {
-           stepperZ.move(-1000); //Up Z Axis
+           stepperZ.move(-1200); //Up Z Axis
 //           display.setCursor(0,0);
 //           display.println("Z Up");
 //           display.display();
@@ -160,7 +161,7 @@ void handleStopStateEvents()
            
         if (stateSW_BT4 == 1) //Down Z Axis
         {
-           stepperZ.move(1000);
+           stepperZ.move(1200);
 
         }
          //else
@@ -288,24 +289,23 @@ void handleStartStateEvents()
         setMotorSpeeds(); //replaced Reset with Just Setting Motors
 
         prog_position* nxtpos;
-        nxtpos = savedPrograms[0]->epiPos;
+        nxtpos = savedPrograms[0].epiPos;
                   
         stepperX.moveTo(nxtpos->Xpos); 
         stepperY.moveTo(nxtpos->Ypos);
         stepperZ.moveTo(nxtpos->Zpos);
         stepperP.moveTo(nxtpos->Ppos);
 
-        sprintf(buff,(const char*)F("Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
+        sprintf(buff,("Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
         ////INcrement tonext Position  if not at end
-        if (savedPrograms[0]->epiPos != savedPrograms[0]->telosPos)   
+        if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
         {
-          savedPrograms[0]->epiPos = nxtpos->epomPos; //Change pointer to next Pos
+          savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }else
-        
         //If Moved to Last One, then Make Sure Next Pos Is null
 //        if (savedPrograms[0]->epiPos == savedPrograms[0]->telosPos)  
         {
-          savedPrograms[0]->epiPos = 0; //Set To Null
+          savedPrograms[0].epiPos = 0; //Set To Null
         }
         Serial.println(buff);
 
@@ -329,9 +329,10 @@ void handleStartStateEvents()
       case SAVE_POSITION: //Add Current Position TO list Of Saved positions
       { //Need the Brackets To bypass C restriction on newpos initialization
             iposSaveIndex++;
+            assert(iposSaveIndex < MAX_POSITIONS);
             //Create New Position Struct
-            prog_position* newpos = new prog_position;
-            //savedPositions[iposSaveIndex]   
+            prog_position* newpos = savedPrograms[0].telosPos+sizeof(prog_position); //Move Pointer To next Memory Position
+            //savedPositions[iposSaveIndex] 
             newpos->Xpos = stepperX.currentPosition();
             newpos->Ypos = stepperY.currentPosition();
             newpos->Zpos = stepperZ.currentPosition();
@@ -339,16 +340,16 @@ void handleStartStateEvents()
 
             //savedPositions[iposSaveIndex-1].epomPos = newpos;
             //savedPositions[iposSaveIndex] = *newpos;
-            savedPrograms[0]->telosPos->epomPos = newpos;
-            savedPrograms[0]->telosPos          = newpos; //Update That Last Pos Is this new pos
+            savedPrograms[0].telosPos->epomPos = newpos;
+            savedPrograms[0].telosPos          = newpos; //Update That Last Pos Is this new pos
             
             newpos->epomPos                   = 0; //IMportant to set this to 0 So clear end of list 
-            newpos->seqID                     = savedPrograms[0]->posCount;
+            newpos->seqID                     = savedPrograms[0].posCount;
             
-            savedPrograms[0]->posCount++;
+            savedPrograms[0].posCount++;
             
             //char buff[130];
-            sprintf(buff,(const char*)F("Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savedPrograms[0]->telosPos->seqID, savedPrograms[0]->telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            sprintf(buff,("Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savedPrograms[0].telosPos->seqID, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
             Serial.println(buff);
 
             //free(newpos);
@@ -364,16 +365,16 @@ void handleStartStateEvents()
         //Set Prog Name To Incremented file
         String filename = "EOS_";
         filename += String(gi_numberOfProgFiles+1) + String(".PRG");
-        strcpy(savedPrograms[0]->progname,filename.c_str());
+        strcpy(savedPrograms[0].progname,filename.c_str());
         
-        saveProgram(*savedPrograms); //Save the 1st Program
+        saveProgram(&savedPrograms[0]); //Save the 1st Program
 
 //        fileroot = SD.open("/");
 //        printDirectory(fileroot, 0);
 //        fileroot.close();
 
         gi_numberOfProgFiles = loadProgramFileNames();
-        Serial.println(gi_numberOfProgFiles);
+
         systemState = SAVE_PROGRAM;
       }
       break;
@@ -382,9 +383,9 @@ void handleStartStateEvents()
       {
   
         //prog_clearPoslist(savedPrograms[0]);
-        savedPrograms[0] = loadProgram((selectedProgramFile.c_str()));      
+        savedPrograms[0] = *loadProgram((selectedProgramFile.c_str()));      
 
-        if (savedPrograms[0])
+        if (savedPrograms[0].posCount > 0)
             systemState = LOAD_PROGRAM;
         else
           {

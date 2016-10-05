@@ -137,7 +137,7 @@ void dispState()
       case IDLE: //1
         display.setFont(NULL);      
         display.setCursor(10,0);
-        display.println("~Load Program~");         
+        display.println(F("  ~Program Menu~"));         
         
         displayPrograms(gi_startindexFileList,gi_filelistSelectedIndex);       
        break;
@@ -148,25 +148,25 @@ void dispState()
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
         display.setCursor(0,28);
-        display.println(" -Home-");
+        display.println(F(" -Home-"));
       break;
 
       case HOMING:
         display.setTextColor( WHITE,BLACK); // 'inverted' text     
         //display.setCursor(0,20);
         display.setCursor(0,11);
-        display.println("-Homing->");
+        display.println(F("-Homing->"));
 
         //display.startscrollright(0x00, 0x0F);
       break;
       
       case MOVING:
         display.setCursor(0,11);
-        display.println("Keep clear");
+        display.println(F("Keep clear"));
         display.setTextColor( WHITE,BLACK); // 'inverted' text
         display.setCursor(0,28);
      
-        display.println("-Moving-");
+        display.println(F("-Moving-"));
 
         //display.startscrollright(0x00, 0x0F);
       break;
@@ -174,7 +174,7 @@ void dispState()
       case JOYSTICK:
         sprintf(buff,"%d - %d",posJRx,posJRy);
         display.setCursor(0,11);
-        display.println("Joystick");
+        display.println(F("Joystick"));
         display.setTextColor( WHITE,BLACK); // 'inverted' text
         display.setCursor(5,30);
         display.print(buff);
@@ -188,7 +188,7 @@ void dispState()
         sprintf(buff," %d Saved", iposSaveIndex);
         display.println(buff);
         display.setFont();
-        sprintf(buff,"X:%ld \t Y:%ld \nZ:%ld  \t P:%ld",savedPrograms[0]->telosPos->Xpos, savedPrograms[0]->telosPos->Ypos, savedPrograms[0]->telosPos->Zpos,savedPrograms[0]->telosPos->Ppos );
+        sprintf(buff,"X:%ld \t Y:%ld \nZ:%ld  \t P:%ld",savedPrograms[0].telosPos->Xpos, savedPrograms[0].telosPos->Ypos, savedPrograms[0].telosPos->Zpos,savedPrograms[0].telosPos->Ppos );
 
         display.println(buff);
         
@@ -199,7 +199,7 @@ void dispState()
         sprintf(buff," Saved to SD card", iposSaveIndex);
         display.println(buff);
         display.setFont();
-        sprintf(buff,"%s ",savedPrograms[0]->progname);
+        sprintf(buff,"%s ",savedPrograms[0].progname);
 
         display.println(buff);
 
@@ -208,7 +208,7 @@ void dispState()
       case RESET:
         display.setCursor(0,11);
         display.print(iposSaveIndex);
-        display.println(" RESET ");
+        display.println(F(" RESET "));
       break;
 
       default:
@@ -216,11 +216,11 @@ void dispState()
       
       case POS_ERROR:
         display.setCursor(0,11);
-        display.println("ERROR 101");
+        display.println(F("ERROR 101"));
         display.setTextColor( WHITE,BLACK); // 'inverted' text
         display.setCursor(0,28);
      
-        display.println("Pos. Lost");
+        display.println(F("Pos. Lost"));
       
       break;
     }
@@ -275,10 +275,7 @@ int displayPrograms(int& startIndex,int selectedIndex) //Display
         {
            selectedProgramFile = gstr_progfilenames[n];
           
-           display.setTextColor( BLACK,WHITE); //Show As Selected
-           Serial.print("Select");
-           Serial.println(selectedIndex);
-           
+           display.setTextColor( BLACK,WHITE); //Show As Selected           
         }
         else
         {

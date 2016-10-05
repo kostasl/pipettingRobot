@@ -44,6 +44,8 @@
             
   02/10/16 Added homing before program loading, remove reset at homing
   04/10/16 Added 2 stage Homing (z 1st, then XYP), added menu scroll for loading and adding new program, changed to JoyButton for select
+  05/10/16 Fixed Scrolling, But problem of freezing remains - I removed dynamic memory allocation and created a global buffer on the heap of MAX_POSITIONS - to Stop Freezing which was prob caused by mem fragmentation- 
+           -Fixed Prog Relisting After running prog by rewinding Directory.
 */
 
 #include <AccelStepper.h>
@@ -69,6 +71,7 @@
 
 #include "lh_controller.h"
 
+#include <assert.h>
     
 #if (SSD1325_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
@@ -169,7 +172,11 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
   fileroot.close();
 
   //Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
-  memset(savedPrograms,0,sizeof(t_program*)*MAX_POSITIONS); //Set to 0 For non-inited
+  memset(savedPrograms,0,sizeof(t_program)*MAX_PROGS); //Set to 0 For non-inited
+  //Setup Position COntinuous Memory Buffer 
+   //Init Prog / Create 1st defaultPosition where all programs start from
+  gposbuffer = (prog_position*)malloc(100*sizeof(prog_position));
+  
   reset(); //IDLE Will Call Reset
   
 } //End Of Setup
@@ -227,11 +234,17 @@ else
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
     stepperX.run();  
+    stepperX.run();  
+
     stepperY.run();
+    stepperY.run();
+
     stepperZ.run();
     stepperZ.run();
     stepperZ.run();
     stepperZ.run();
+    stepperZ.run();
+
     stepperP.run();
 
 ////-------------------////
@@ -269,12 +282,11 @@ void reset()
   
   //Initially savedPrograms[0] = 0;
   
-  Serial.print("\nProg Pointer: ");
-  Serial.println((unsigned int)savedPrograms[0]);
+  //Serial.print(F("\nProg Pointer: "));
+  //Serial.println((unsigned int)savedPrograms);
   
-  prog_init(savedPrograms[0]); //Empties List
+  prog_init(&savedPrograms[0]); //Empties List
   
-
 
   //savedPositions[0] = (t_position)800,800,200,100};
   iposSaveIndex = 0; //pos to save next Pos;
@@ -284,39 +296,39 @@ void reset()
 //Called When INit or After Homing
 void setMotorSpeeds()
 {
-  stepperX.setMaxSpeed(2500);
-  stepperY.setMaxSpeed(2500);
-  stepperZ.setMaxSpeed(6000);
+  stepperX.setMaxSpeed(3500);
+  stepperY.setMaxSpeed(3500);
+  stepperZ.setMaxSpeed(7000);
   stepperP.setMaxSpeed(1500);
 
   stepperX.setAcceleration(1800); 
   stepperY.setAcceleration(1800);   
-  stepperZ.setAcceleration(2500);   
+  stepperZ.setAcceleration(4500);   
   stepperP.setAcceleration(1500);
 
 }
 
 //Initializes a new Program Data structure 
 //If pointer not empty then it deletes the existing structure first 
-void prog_init(t_program*& prog)
+void prog_init(t_program* prog)
 {
 
   if (prog != 0)
   {
-    prog_clearPoslist(prog);
-    delete(prog); //avoid this
+    //prog_clearPoslist(prog);
+    //delete(prog); //avoid this
   }
   
   
   //Init Prog / Create 1st defaultPosition where all programs start from
-  prog_position* newpos = new prog_position;
+  prog_position* newpos = gposbuffer;
   newpos->Xpos  = 0;
   newpos->Ypos  = 0;
   newpos->Zpos  = 0;
   newpos->Ppos  = -2500;
   newpos->seqID = 0;
 
-  prog = new  t_program;
+  //prog = new  t_program;
   prog->posCount = 1; //First Default Position Saved
   prog->protoPos = newpos; //First Position
   prog->epiPos   = newpos; //Current Position
@@ -328,23 +340,43 @@ void prog_init(t_program*& prog)
 ///Delete Clear memory of structs in program list of positions
 void prog_clearPoslist(t_program* prog)
 {
+  int n = 0;
+  
       if (prog == 0)
         return;
       if (prog->protoPos == 0 || prog->posCount == 0 )
         return;
-        
-      ///Need to clear LIst of positions too
+
+      memset(prog->protoPos,0,sizeof(t_program)*prog->posCount);
+
+/*     ///Need to clear LIst of positions too
       prog_position* cpos    = prog->protoPos;
-      prog_position* nxtpos = 0;
-      
-      while (cpos)
+      prog_position* nxtpos  = 0;
+      while (n < prog->posCount)
       {
         nxtpos = cpos->epomPos;
-        delete(cpos);        
+        //delete(cpos);
+        cpos = 0;        
         cpos = nxtpos;
+        n++;
       }
+      */
 
     prog->posCount = 0;
-      
+
+
+}
+
+
+// handle diagnostic informations given by assertion and abort program execution:
+void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp) {
+    // transmit diagnostic informations through serial link. 
+    Serial.println(__func);
+    Serial.println(__file);
+    Serial.println(__lineno, DEC);
+    Serial.println(__sexp);
+    Serial.flush();
+    // abort program execution.
+    abort();
 }
 

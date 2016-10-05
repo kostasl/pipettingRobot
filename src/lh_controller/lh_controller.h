@@ -3,6 +3,8 @@
 
 
 */
+#define __ASSERT_USE_STDERR
+
 #define TXT_TITLE          "-AutoPip-" // Machine Name
 
 
@@ -72,7 +74,8 @@ bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 ///N/A The Green MISO Line Is unused -
 //ChipSelect >?
 
-#define MAX_POSITIONS 50
+#define MAX_POSITIONS 100
+#define MAX_PROGS 1
 
 // EG X-Y position bed driven by 2 steppers
 // Alas its not possible to build an array of these with different pins for each :-(
@@ -94,7 +97,7 @@ typedef struct {
   uint16_t ID;
   uint16_t posCount; //Number of positions
   uint8_t repsRemain; //Defines remaining Number of repetitions during a run
-  char progname[15]; //The program Name
+  char progname[18]; //The program Name
   char timestamp[10]; //Last Mod Date
   list_position* protoPos;
   list_position* epiPos;
@@ -104,7 +107,7 @@ typedef struct {
 
 
 //list_position savedPositions[MAX_POSITIONS];
-t_program* savedPrograms[MAX_POSITIONS]; //Array Of pointers to Saved Programs
+t_program savedPrograms[MAX_PROGS]; //Array Of pointers to Saved Programs
 
 int iposSaveIndex     = 0; // Index Of last position saved on this program  
 int iposCurrentIndex  = 0; //Index Of currently running position of program
@@ -158,7 +161,7 @@ int gi_filelistSelectedIndex  = 0; //For Listing Programs, start
 int gi_numberOfProgFiles      = 0; //For Listing Programs, start 
 int gi_startindexFileList     = 0; //Used For Scrolling Down List indicates First Element
 String selectedProgramFile;
-
+prog_position* gposbuffer     =0; //Pointer To allocated Memory Buffer to save positions
 
 
 // Function Prototypes
