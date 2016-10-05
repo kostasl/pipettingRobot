@@ -34,9 +34,11 @@ void handleStopStateEvents()
          if (posJRy > LH_MIN_JOY_MOVE && (gi_filelistSelectedIndex > 0))
             gi_filelistSelectedIndex--;
          
-         if ((posJRy < -LH_MIN_JOY_MOVE) && (gi_filelistSelectedIndex <= gi_numberOfProgFiles))
+         if ((posJRy < -LH_MIN_JOY_MOVE) && (gi_filelistSelectedIndex < (gi_numberOfProgFiles-1)))
+         {
             gi_filelistSelectedIndex++;
-
+            //Serial.println(gi_filelistSelectedIndex);
+         }
 
           dispState();
           display.display();

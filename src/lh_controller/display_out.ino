@@ -254,12 +254,12 @@ int displayPrograms(int& startIndex,int selectedIndex) //Display
 
   if (( selectedIndex - startIndex) >  Nlim) //If Selection exceeds page size, start listing further down, so it scrolls
       startIndex++; //Scroll Down
-  if (startIndex > selectedIndex)
+  if (startIndex >= selectedIndex && startIndex > 0)
       startIndex--; //scroll Up
 
 
       
-  while (n <= (Nlim)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
+  while (true) { //Stop When Enough Files have beeen displayed or No more files available in root directory
 
     if (gstr_progfilenames[n].length() < 2) {
       // no more files
@@ -271,11 +271,14 @@ int displayPrograms(int& startIndex,int selectedIndex) //Display
       if (startIndex <= n ) {
           
         //Check if this File Is the currently selected one
-        if ((n+startIndex) == selectedIndex)
+        if (n == selectedIndex)
         {
            selectedProgramFile = gstr_progfilenames[n];
           
            display.setTextColor( BLACK,WHITE); //Show As Selected
+           Serial.print("Select");
+           Serial.println(selectedIndex);
+           
         }
         else
         {
