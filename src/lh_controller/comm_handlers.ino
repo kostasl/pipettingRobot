@@ -8,7 +8,7 @@
 
 
 
-///READ JOY Stick //
+///READ JOYStick //
 
 void readJoystick()
 {
