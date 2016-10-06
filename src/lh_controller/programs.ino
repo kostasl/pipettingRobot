@@ -8,8 +8,12 @@
 /*
  * Generates Program Struct for dispensing to 18 Vials
  */
+
+ 
 void prog_DispenseFoodToVialsPos(t_program* prog,uint8_t vialCount)
 {
+
+prog->telosPos = prog->protoPos;
 
 Serial.println((int)prog);
 Serial.println(vialCount);
@@ -21,15 +25,84 @@ assert(vialCount < MAX_POSITIONS/2);
 
 strcpy(prog->progname,"Fill_FdV");
 
-for (int i=1; i<=vialCount;i++)
+const uint16_t upZPos   = 28653;
+const uint16_t downZPos = 32653;
+
+prog_position* newpos;
+
+for (int i=0; i<vialCount;i++)
 {
 
+  ///Move OVER To Food
+  //pos i: 1 X:1057 Y:3158,Z:629,P:-2801 
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 1057; //Press  
+  newpos->Ypos          = 3158; //Press  
+  newpos->Zpos          = 629; //Press  
+  newpos->Ppos          = -1000; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   
- //Move Over Vial
-  prog_position* newpos = prog->telosPos+sizeof(prog_position);;
-  newpos->Xpos          = 4034 + 470*(i/6);
-  newpos->Ypos          = 5300 + 470*i;
-  newpos->Zpos          = 1000;
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+  
+  
+  //Move Into Food
+  //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 1057; //Press  
+  newpos->Ypos          = 3158; //Press  
+  newpos->Zpos          = 9088; //Press  
+  newpos->Ppos          = -1000; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+
+  
+  //Move Take Food Use Pipette
+  //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 1057; //Press  
+  newpos->Ypos          = 3158; //Press  
+  newpos->Zpos          = 9088; //Press  
+  newpos->Ppos          = -2800; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+  
+
+  //Move out from the  Food 
+  //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 1057; //Press  
+  newpos->Ypos          = 3158; //Press  
+  newpos->Zpos          = 629; //Press  
+  newpos->Ppos          = -2800; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+  
+ 
+  
+ ////////////Move Over Vial///////////////
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  newpos->Xpos          = 4034 - 470*(i/6);
+  newpos->Ypos          = 5300 + 470*(i%6);
+  newpos->Zpos          = upZPos;
   newpos->Ppos          = -2500;
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
@@ -38,11 +111,13 @@ for (int i=1; i<=vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
+  showProgPos(newpos);
 
  //Move DOWN Vial
-  newpos = prog->telosPos+sizeof(prog_position);;
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);;
   *newpos               = *prog->telosPos; //Copy Data Over
-  newpos->Zpos          = 31653; //39758; //Move Down  
+  newpos->Zpos          = downZPos; //39758; //Move Down  
+  newpos->Ppos          = -2500; //39758; //Move Down  
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -50,12 +125,13 @@ for (int i=1; i<=vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
+  showProgPos(newpos);
 
   ////Press Pipette 
-  newpos = prog->telosPos+sizeof(prog_position);;
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);;
   *newpos               = *prog->telosPos; //Copy Data Over
   newpos->Ppos          = -1000; //Press 
-  newpos->Zpos          = 31653; //Press   
+  newpos->Zpos          = downZPos; //Press   
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -63,11 +139,12 @@ for (int i=1; i<=vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
+  showProgPos(newpos);
 
   ////MOVE UP VIAL  
-  newpos = prog->telosPos+sizeof(prog_position);
-  *newpos               = *prog->telosPos; //Copy Data Over
-  newpos->Zpos          = 30653; //Press  
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Zpos          = upZPos; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -76,9 +153,16 @@ for (int i=1; i<=vialCount;i++)
 
   prog->posCount++;
 
+  showProgPos(newpos);
+
+  
+  Serial.print(F("Added Vial: "));
+  Serial.println(i);
    
-  Serial.print("Added Pos: ");
-  Serial.println(prog->posCount);
+  //Serial.print("telos MPos: ");
+  //Serial.println((int)prog->telosPos);
+
+
 }//Loop For Each  Vial
 
  //Done
@@ -93,7 +177,7 @@ void prog_init(t_program* prog)
 
   if (prog != 0)
   {
-    //prog_clearPoslist(prog);
+    prog_clearPoslist(prog);
     //delete(prog); //avoid this
   }
   
@@ -125,7 +209,7 @@ void prog_clearPoslist(t_program* prog)
       if (prog->protoPos == 0 || prog->posCount == 0 )
         return;
 
-      memset(prog->protoPos,0,sizeof(t_program)*prog->posCount);
+      memset(prog->protoPos,0,sizeof(t_program)*MAX_POSITIONS);
 
 /*     ///Need to clear LIst of positions too
       prog_position* cpos    = prog->protoPos;

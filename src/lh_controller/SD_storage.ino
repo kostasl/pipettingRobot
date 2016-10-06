@@ -127,7 +127,7 @@ t_program* loadProgram(const char* progname)
       }
 
       
-       sprintf(buff,("SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), prog->telosPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
+       sprintf(buff,("SD. Loaded Pos i: %d X:%ld Y:%ld,Z:%ld,P:%d "), prog->telosPos->seqID, loadPos->Xpos, loadPos->Ypos, loadPos->Zpos,loadPos->Ppos );
        Serial.println(buff);
      
       cnt++;
@@ -169,7 +169,7 @@ int saveProgram(t_program* prog)
   {
 
    //sprintf(buff,"SD Saving pos. i: %d",savePos->seqID);
-   sprintf(buff,("SD. Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savePos->seqID, savePos->Xpos, savePos->Ypos, savePos->Zpos,savePos->Ppos );
+   sprintf(buff,("SD. Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%d "), savePos->seqID, savePos->Xpos, savePos->Ypos, savePos->Zpos,savePos->Ppos );
    Serial.println(buff);
    
    progFile.write((uint8_t*)savePos,sizeof(prog_position));

@@ -27,7 +27,7 @@ void handleStopStateEvents()
            }else
            if (selectedProgramFile == "FILL FOOD VIALS"){
               nextState = HOMING;
-              prog_DispenseFoodToVialsPos(savedPrograms,4);
+              prog_DispenseFoodToVialsPos(savedPrograms,12);
            }
            else{ //Load the selected File 
                nextState = LOAD_PROGRAM;
@@ -113,8 +113,8 @@ void handleStopStateEvents()
               nextState = TEST_RUN; //Do it again
           }else
           { 
-            char buff[60];
-            sprintf(buff,("End of Program at pos i: %d "), savedPrograms[0].telosPos->seqID);
+            
+            sprintf(buff,("End Prog i: %d "), savedPrograms[0].telosPos->seqID);
             Serial.println(buff);
             //DOne the sequence 
             //Reset Program To Beginning 
@@ -122,7 +122,7 @@ void handleStopStateEvents()
             savedPrograms[0].posCount = 1; //Stop From Running Again
             
             //- Go Back HOME after and reset to Unload Program
-            //reset();
+            //resetVars();
             nextState = HOMING;
             ///iposCurrentIndex = 0;
           }
@@ -238,10 +238,10 @@ void handleStartStateEvents()
 {  
     switch (nextState)
     {
-      char buff[130];
+     
 
       case IDLE:
-        reset(); //Reset Motor Speeds / Accell
+        resetVars(); //Reset Motor Speeds / Accell
 
         stepperX.stop();
         stepperY.stop();
@@ -305,7 +305,7 @@ void handleStartStateEvents()
         stepperZ.moveTo(nxtpos->Zpos);
         stepperP.moveTo(nxtpos->Ppos);
 
-        sprintf(buff,("Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
+        showProgPos(nxtpos);
         ////INcrement tonext Position  if not at end
         //if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
         if (nxtpos->epomPos)
@@ -317,7 +317,6 @@ void handleStartStateEvents()
         {
           savedPrograms[0].epiPos = 0; //Set To Null
         }
-        Serial.println(buff);
 
         stateTimeOut =  millis()  + 35000; //Give 30sec timeout until move executes
         systemState = TEST_RUN;
@@ -359,8 +358,9 @@ void handleStartStateEvents()
             savedPrograms[0].posCount++;
             
             //char buff[130];
-            sprintf(buff,("Saved Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), savedPrograms[0].telosPos->seqID, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
-            Serial.println(buff);
+            //sprintf(buff,("Saved i: %d X:%ld Y:%ld,Z:%ld,P:%d "), savedPrograms[0].telosPos->seqID, savedPrograms[0].telosPos->Xpos, newpos->Ypos, newpos->Zpos,newpos->Ppos );
+            //Serial.println(buff);
+            showProgPos(savedPrograms[0].telosPos);
 
             //free(newpos);
             dispState();
@@ -406,7 +406,7 @@ void handleStartStateEvents()
       break;
 
       case RESET:
-          reset();
+          resetVars();
           Serial.println("-RESET-");
           dispState();
           display.display();

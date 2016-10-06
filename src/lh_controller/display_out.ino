@@ -294,5 +294,11 @@ int displayPrograms(int& startIndex,int selectedIndex) //Display
   return n;
 }
 
+//
+void showProgPos(prog_position* pos)
+{
+    sprintf(buff,("pos i: %d X:%d Y:%d,Z:%d,P:%d "), pos->seqID, pos->Xpos, pos->Ypos, pos->Zpos,pos->Ppos );
+    Serial.println(buff);
+}
 /////////////////END DISPLAY CODE ////////////////
 

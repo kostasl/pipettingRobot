@@ -52,7 +52,7 @@
 
 #define BTN_DEBOUNCE_TIMEMS 100 //DEbounce of LImit Switches in ms
 
-#define MAX_NUMBER_OF_FILES 30 //Define Size of filename holding array
+#define MAX_NUMBER_OF_FILES 20 //Define Size of filename holding array
 
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);
@@ -74,7 +74,7 @@ bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 ///N/A The Green MISO Line Is unused -
 //ChipSelect >?
 
-#define MAX_POSITIONS 100
+#define MAX_POSITIONS 200
 #define MAX_PROGS 1
 
 // EG X-Y position bed driven by 2 steppers
@@ -83,11 +83,11 @@ bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 
 // Defines a target position to which the robot will move into - Coords defined as stepper positions
 struct list_position {
-  uint16_t    seqID;//Id In Position Sequence
-  long        Xpos;
-  long        Ypos;
-  long        Zpos;
-  long        Ppos;
+  uint8_t    seqID;//Id In Position Sequence
+  int16_t     Ppos;
+  uint16_t    Xpos;
+  uint16_t    Ypos;
+  uint16_t    Zpos;
   struct list_position  *epomPos; //Next Position   - Null Means  this Final Position
 }; 
 
@@ -108,6 +108,8 @@ typedef struct {
 
 //list_position savedPositions[MAX_POSITIONS];
 t_program savedPrograms[MAX_PROGS]; //Array Of pointers to Saved Programs
+prog_position gposbuffer[MAX_POSITIONS]; //Pointer To statically allocated Memory Buffer to save positions
+
 
 int iposSaveIndex     = 0; // Index Of last position saved on this program  
 int iposCurrentIndex  = 0; //Index Of currently running position of program
@@ -161,9 +163,10 @@ int gi_filelistSelectedIndex  = 0; //For Listing Programs, start
 int gi_numberOfProgFiles      = 0; //For Listing Programs, start 
 int gi_startindexFileList     = 0; //Used For Scrolling Down List indicates First Element
 String selectedProgramFile;
-prog_position* gposbuffer     =0; //Pointer To allocated Memory Buffer to save positions
 
 
+ char buff[130]; //Generic Alloc Memory For Messages / Serial
+ 
 // Function Prototypes
 int checkHoming(); //Check homing conditions and set pos to 0 when reached
 void handleStartStateEvents(); //Handles actions linked to moving to new state
@@ -171,7 +174,7 @@ void handleStopStateEvents(); //Checks conditions for when current state end and
 int handleSerialCmd();
 
 void dispWelcome();
-void reset();
+void resetVars();
 void setMotorSpeeds();
 
 

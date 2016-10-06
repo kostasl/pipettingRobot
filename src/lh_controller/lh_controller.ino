@@ -74,7 +74,7 @@
 #include <assert.h>
     
 #if (SSD1325_LCDHEIGHT != 64)
-#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#error(F("Height incorrect, please fix Adafruit_SSD1306.h!"));
 #endif
 
 //
@@ -175,9 +175,9 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
   memset(savedPrograms,0,sizeof(t_program)*MAX_PROGS); //Set to 0 For non-inited
   //Setup Position COntinuous Memory Buffer 
    //Init Prog / Create 1st defaultPosition where all programs start from
-  gposbuffer = (prog_position*)malloc(100*sizeof(prog_position));
+  //gposbuffer = (prog_position*)malloc(MAX_POSITIONS*sizeof(prog_position));
   
-  reset(); //IDLE Will Call Reset
+ // resetVars(); //IDLE Will Call Reset
   
 } //End Of Setup
 
@@ -190,7 +190,7 @@ void loop() {
   if ((stateTimeOut < millis()) && stateTimeOut != 0)
   {
    stateTimeOut = 0;
-   display.println("-TIMEOUT-");
+   display.println(F("-TIMEOUT-"));
    display.display();
    delay(500);
    nextState = IDLE;
@@ -278,7 +278,7 @@ else
 }
 
 
-void reset()
+void resetVars()
 {
   
   //Initially savedPrograms[0] = 0;
@@ -312,6 +312,7 @@ void setMotorSpeeds()
 // handle diagnostic informations given by assertion and abort program execution:
 void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp) {
     // transmit diagnostic informations through serial link. 
+    Serial.println(F("Assertion Failed"));
     Serial.println(__func);
     Serial.println(__file);
     Serial.println(__lineno, DEC);
