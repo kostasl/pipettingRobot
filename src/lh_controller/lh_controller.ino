@@ -172,7 +172,7 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
   fileroot.close();
 
   //Empty Pos Mem Array /Set Motor MaxSpeed v& Accell
-  memset(savedPrograms,0,sizeof(t_program)*MAX_PROGS); //Set to 0 For non-inited
+  //memset(savedPrograms,0,sizeof(t_program)*MAX_PROGS); //Set to 0 For non-inited
   //Setup Position COntinuous Memory Buffer 
    //Init Prog / Create 1st defaultPosition where all programs start from
   //gposbuffer = (prog_position*)malloc(MAX_POSITIONS*sizeof(prog_position));

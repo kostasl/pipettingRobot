@@ -28,7 +28,7 @@ int checkHoming()
         stepperX.setCurrentPosition(0); //Set ref Point And Target to 0 Has the side effect of setting the current motor speed to 0. 
         stepperX.stop();
         display.setCursor(0,disp_LOW_LINE);
-        display.print(F("X ON"));
+        display.print(("X ON"));
         display.display();
         }
      }
@@ -57,7 +57,7 @@ int checkHoming()
         stepperY.setCurrentPosition(0); //Set As Ref Point Has the side effect of setting the current motor speed to 0. 
         stepperY.stop(); //Just in case future vers change the above
         display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
-        display.print(F("Y ON"));
+        display.print(("Y ON"));
         display.display();
       }
     }
@@ -84,7 +84,7 @@ int checkHoming()
         stepperZ.stop();
         stepperZ.setSpeed(0);
         display.setCursor(disp_LIM_SPACING*2,disp_LOW_LINE);
-        display.print(F("Z ON"));
+        display.print(("Z ON"));
         display.display();
       }
     }
@@ -115,7 +115,7 @@ int checkHoming()
           stepperP.setSpeed(0);
           stepperP.stop();
           display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
-          display.print(F("P ON"));
+          display.print(("P ON"));
           display.display();
         }
     }
@@ -154,7 +154,7 @@ int checkOutOfRange()
         {
           stepperX.setSpeed(0);
           display.setCursor(0,disp_LOW_LINE);
-          display.print(F("X ON"));
+          display.print(("X ON"));
           display.display();
         }
   }
@@ -177,7 +177,7 @@ int checkOutOfRange()
         {
           stepperY.setSpeed(0);//Just in case future vers change the above
           display.setCursor(disp_LIM_SPACING,disp_LOW_LINE);
-          display.print(F("Y ON"));
+          display.print(("Y ON"));
           display.display(); //These Calls CAuse jitter
         }
   }
@@ -210,7 +210,7 @@ int checkOutOfRange()
     if (stepperP.currentPosition() <= LIM_PIPETTE_UPTIX && flag_P_lim==false)
     {     
           display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
-          display.print(F("P LIM"));
+          display.print(("P LIM"));
           display.display();
           
           flag_P_lim = true;

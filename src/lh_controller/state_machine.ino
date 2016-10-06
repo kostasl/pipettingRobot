@@ -8,6 +8,8 @@ Note to convert this to separate compiled file, add the .ccp file extension and 
 ///////////////
 //Run from the main loop on every iteration to check and handle the conditions that may end a state
 ///////////
+long distRemain; //Used to Sum Readings From Distance To Go
+
 void handleStopStateEvents()
 {
    //State finished  
@@ -101,12 +103,12 @@ void handleStopStateEvents()
 
       case MOVING:
             nextState = MOVING;
-
-         if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0)
+         distRemain = stepperX.distanceToGo() + stepperY.distanceToGo() + stepperZ.distanceToGo()+ abs(stepperP.distanceToGo());
+         if (distRemain < 20)
          {
             //displState();
           //Do not Exceed Last saved Position - Check If Next Is Null
-           if (savedPrograms[0].epiPos !=0)
+           if (savedPrograms[0].epiPos)
            { 
               //iposCurrentIndex++;
              
@@ -299,22 +301,25 @@ void handleStartStateEvents()
 
         prog_position* nxtpos;
         nxtpos = savedPrograms[0].epiPos;
-                  
+
+        showProgPos(nxtpos);
+
         stepperX.moveTo(nxtpos->Xpos); 
         stepperY.moveTo(nxtpos->Ypos);
         stepperZ.moveTo(nxtpos->Zpos);
         stepperP.moveTo(nxtpos->Ppos);
 
-        showProgPos(nxtpos);
         ////INcrement tonext Position  if not at end
         //if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
-        if (nxtpos->epomPos)
+        //if (nxtpos->epomPos)
+        if (nxtpos->seqID < savedPrograms[0].posCount)
         {
           savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }else
         //If Moved to Last One, then Make Sure Next Pos Is null
 //        if (savedPrograms[0]->epiPos == savedPrograms[0]->telosPos)  
         {
+          Serial.println(F("PROGRAM END"));
           savedPrograms[0].epiPos = 0; //Set To Null
         }
 

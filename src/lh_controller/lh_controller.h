@@ -82,6 +82,7 @@ bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 // Up to 10 steppers can be handled as a group by MultiStepper
 
 // Defines a target position to which the robot will move into - Coords defined as stepper positions
+//Be carefu
 struct list_position {
   uint8_t    seqID;//Id In Position Sequence
   int16_t     Ppos;

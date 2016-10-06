@@ -25,10 +25,61 @@ assert(vialCount < MAX_POSITIONS/2);
 
 strcpy(prog->progname,"Fill_FdV");
 
-const uint16_t upZPos   = 28653;
+const uint16_t upZPos   = 5653;
 const uint16_t downZPos = 32653;
 
 prog_position* newpos;
+
+
+/////////Pickup Tip//////////// 
+//pos i: 1 X:4895 Y:4247,Z:-24976,P:-2500 
+//pos i: 2 X:4895 Y:4247,Z:-24976,P:-2500 
+//pos i: 3 X:4895 Y:4247,Z:29209,P:-2500 
+//Move Over Tip//
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 4895; //Press  
+  newpos->Ypos          = 4247; //Press  
+  newpos->Zpos          = 629; //Press  
+  newpos->Ppos          = -2800; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+ 
+
+//Move Down INto Tip
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 4895; //Press  
+  newpos->Ypos          = 4247; //Press  
+  newpos->Zpos          = 28000; //Press  
+  newpos->Ppos          = -2800; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+
+
+
+//Move Up With TIP
+  newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
+  *newpos               = *(prog->telosPos); //Copy Data Over
+  newpos->Xpos          = 4895; //Press  
+  newpos->Ypos          = 4247; //Press  
+  newpos->Zpos          = 600; //Press  
+  newpos->Ppos          = -2800; //Press  
+  newpos->seqID         = prog->posCount;
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
+  
+  prog->telosPos->epomPos = newpos;
+  prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  prog->posCount++;
+
 
 for (int i=0; i<vialCount;i++)
 {
@@ -64,7 +115,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
   prog->posCount++;
 
-  
+
   //Move Take Food Use Pipette
   //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
@@ -79,15 +130,14 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos->epomPos = newpos;
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
   prog->posCount++;
-  
-
-  //Move out from the  Food 
+//
+  //Move Out of Food //Very Strange Bug /System Freezes at this step If Added!
   //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
   newpos->Xpos          = 1057; //Press  
   newpos->Ypos          = 3158; //Press  
-  newpos->Zpos          = 629; //Press  
+  newpos->Zpos          = 6088; //Press  
   newpos->Ppos          = -2800; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
@@ -95,8 +145,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos->epomPos = newpos;
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
   prog->posCount++;
-  
- 
+
   
  ////////////Move Over Vial///////////////
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);

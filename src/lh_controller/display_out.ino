@@ -188,7 +188,7 @@ void dispState()
         sprintf(buff," %d Saved", iposSaveIndex);
         display.println(buff);
         display.setFont();
-        sprintf(buff,"X:%ld \t Y:%ld \nZ:%ld  \t P:%ld",savedPrograms[0].telosPos->Xpos, savedPrograms[0].telosPos->Ypos, savedPrograms[0].telosPos->Zpos,savedPrograms[0].telosPos->Ppos );
+        sprintf(buff,"X:%d \t Y:%d \nZ:%d  \t P:%d",savedPrograms[0].telosPos->Xpos, savedPrograms[0].telosPos->Ypos, savedPrograms[0].telosPos->Zpos,savedPrograms[0].telosPos->Ppos );
 
         display.println(buff);
         
