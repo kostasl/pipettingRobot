@@ -24,6 +24,10 @@ void handleStopStateEvents()
          if (btn_JR_lim.onPressed()){
            if (selectedProgramFile == "NEW PROGRAM"){
               nextState = JOYSTICK;
+           }else
+           if (selectedProgramFile == "FILL FOOD VIALS"){
+              nextState = HOMING;
+              prog_DispenseFoodToVialsPos(savedPrograms,4);
            }
            else{ //Load the selected File 
                nextState = LOAD_PROGRAM;
@@ -32,16 +36,21 @@ void handleStopStateEvents()
 
          //Shift Selected File With Joystick Movement
          if (posJRy > LH_MIN_JOY_MOVE && (gi_filelistSelectedIndex > 0))
+         {
             gi_filelistSelectedIndex--;
+            dispState();
+            display.display();
+
+         }
          
          if ((posJRy < -LH_MIN_JOY_MOVE) && (gi_filelistSelectedIndex < (gi_numberOfProgFiles-1)))
          {
             gi_filelistSelectedIndex++;
             //Serial.println(gi_filelistSelectedIndex);
+            dispState();
+            display.display();
          }
 
-          dispState();
-          display.display();
 
       break;
 

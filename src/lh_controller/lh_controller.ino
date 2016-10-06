@@ -185,9 +185,6 @@ btn_XL_lim.setDebounceTimeout(BTN_DEBOUNCE_TIMEMS);
 
 void loop() {
   
-  //Serial.println(stateButton,DEC); 
-  //delay(20);
-  
   //Handle expiration/end of system state
   //State Expired
   if ((stateTimeOut < millis()) && stateTimeOut != 0)
@@ -195,9 +192,10 @@ void loop() {
    stateTimeOut = 0;
    display.println("-TIMEOUT-");
    display.display();
-   delay(1000);
+   delay(500);
    nextState = IDLE;
   }
+  
 
 //  if (nextState != systemState)
      //First Do Start Event Handling, because on these events some motor States may be set
@@ -211,6 +209,9 @@ if (nextState != systemState)
 else
     //Add State Events Events In Following function
     handleStopStateEvents();
+
+
+
 
 //On Idle We show A menu On Every Cycle
 
@@ -307,66 +308,6 @@ void setMotorSpeeds()
   stepperP.setAcceleration(1500);
 
 }
-
-//Initializes a new Program Data structure 
-//If pointer not empty then it deletes the existing structure first 
-void prog_init(t_program* prog)
-{
-
-  if (prog != 0)
-  {
-    //prog_clearPoslist(prog);
-    //delete(prog); //avoid this
-  }
-  
-  
-  //Init Prog / Create 1st defaultPosition where all programs start from
-  prog_position* newpos = gposbuffer;
-  newpos->Xpos  = 0;
-  newpos->Ypos  = 0;
-  newpos->Zpos  = 0;
-  newpos->Ppos  = -2500;
-  newpos->seqID = 0;
-
-  //prog = new  t_program;
-  prog->posCount = 1; //First Default Position Saved
-  prog->protoPos = newpos; //First Position
-  prog->epiPos   = newpos; //Current Position
-  prog->telosPos = newpos; //Last Position
-  strcpy(prog->progname,("NEW PROGRAM")); //Name of 1st Program
-
-}
-
-///Delete Clear memory of structs in program list of positions
-void prog_clearPoslist(t_program* prog)
-{
-  int n = 0;
-  
-      if (prog == 0)
-        return;
-      if (prog->protoPos == 0 || prog->posCount == 0 )
-        return;
-
-      memset(prog->protoPos,0,sizeof(t_program)*prog->posCount);
-
-/*     ///Need to clear LIst of positions too
-      prog_position* cpos    = prog->protoPos;
-      prog_position* nxtpos  = 0;
-      while (n < prog->posCount)
-      {
-        nxtpos = cpos->epomPos;
-        //delete(cpos);
-        cpos = 0;        
-        cpos = nxtpos;
-        n++;
-      }
-      */
-
-    prog->posCount = 0;
-
-
-}
-
 
 // handle diagnostic informations given by assertion and abort program execution:
 void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp) {

@@ -200,9 +200,12 @@ int loadProgramFileNames()
   int n = 0; //Displayed File count
 
   gstr_progfilenames[0] = String(F("NEW PROGRAM"));
-  gstr_progfilenames[1] = ""; //Empty The next One, in case files are missing
-  n++;
-  while (n <= (MAX_NUMBER_OF_FILES)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
+  gstr_progfilenames[1] = String(F("FILL FOOD VIALS")); //Empty The next One, in case files are missing
+  gstr_progfilenames[2] = String(""); //Empty The next One, in case files are missing
+  
+  n=2; //Count for fixed entries above
+  
+  while (n < (MAX_NUMBER_OF_FILES)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
 
     File entry =  dir.openNextFile();
     if (!entry) {
@@ -223,6 +226,8 @@ int loadProgramFileNames()
     entry.close();
   } //EnD While Loop
 
+  gstr_progfilenames[n] = String("");
+ 
   dir.close();
   
   return n;
