@@ -8,7 +8,7 @@ Note to convert this to separate compiled file, add the .ccp file extension and 
 ///////////////
 //Run from the main loop on every iteration to check and handle the conditions that may end a state
 ///////////
-long distRemain; //Used to Sum Readings From Distance To Go
+long distRemain = 0; //Used to Sum Readings From Distance To Go
 
 void handleStopStateEvents()
 {
@@ -103,8 +103,8 @@ void handleStopStateEvents()
 
       case MOVING:
             nextState = MOVING;
-         distRemain = stepperX.distanceToGo() + stepperY.distanceToGo() + stepperZ.distanceToGo()+ abs(stepperP.distanceToGo());
-         if (distRemain < 20)
+         distRemain = abs(stepperX.distanceToGo()) + abs(stepperY.distanceToGo()) + abs(stepperZ.distanceToGo())+ abs(stepperP.distanceToGo());
+         if (distRemain < 10)
          {
             //displState();
           //Do not Exceed Last saved Position - Check If Next Is Null
