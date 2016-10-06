@@ -27,8 +27,8 @@ for (int i=1; i<=vialCount;i++)
   
  //Move Over Vial
   prog_position* newpos = prog->telosPos+sizeof(prog_position);;
-  newpos->Xpos          = 100*(i/6);
-  newpos->Ypos          = 150*i;
+  newpos->Xpos          = 4034 + 470*(i/6);
+  newpos->Ypos          = 5300 + 470*i;
   newpos->Zpos          = 1000;
   newpos->Ppos          = -2500;
   newpos->seqID         = prog->posCount;
@@ -42,7 +42,7 @@ for (int i=1; i<=vialCount;i++)
  //Move DOWN Vial
   newpos = prog->telosPos+sizeof(prog_position);;
   *newpos               = *prog->telosPos; //Copy Data Over
-  newpos->Zpos          = 3000; //Move Down  
+  newpos->Zpos          = 31653; //39758; //Move Down  
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -54,7 +54,8 @@ for (int i=1; i<=vialCount;i++)
   ////Press Pipette 
   newpos = prog->telosPos+sizeof(prog_position);;
   *newpos               = *prog->telosPos; //Copy Data Over
-  newpos->Ppos          = -1000; //Press  
+  newpos->Ppos          = -1000; //Press 
+  newpos->Zpos          = 31653; //Press   
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -64,18 +65,16 @@ for (int i=1; i<=vialCount;i++)
   prog->posCount++;
 
   ////MOVE UP VIAL  
-  newpos = prog->telosPos+sizeof(prog_position);;
+  newpos = prog->telosPos+sizeof(prog_position);
   *newpos               = *prog->telosPos; //Copy Data Over
-  newpos->Zpos          = 1000; //Press  
+  newpos->Zpos          = 30653; //Press  
   newpos->seqID         = prog->posCount;
-  newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
+  newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   
   prog->telosPos->epomPos = newpos;
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
-
-
 
    
   Serial.print("Added Pos: ");

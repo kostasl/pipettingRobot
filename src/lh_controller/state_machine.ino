@@ -307,7 +307,8 @@ void handleStartStateEvents()
 
         sprintf(buff,("Run to Pos i: %d X:%ld Y:%ld,Z:%ld,P:%ld "), nxtpos->seqID, nxtpos->Xpos, nxtpos->Ypos, nxtpos->Zpos, nxtpos->Ppos );
         ////INcrement tonext Position  if not at end
-        if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
+        //if (savedPrograms[0].epiPos != savedPrograms[0].telosPos)   
+        if (nxtpos->epomPos)
         {
           savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }else
