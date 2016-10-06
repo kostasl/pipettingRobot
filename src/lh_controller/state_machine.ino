@@ -29,7 +29,7 @@ void handleStopStateEvents()
            }else
            if (selectedProgramFile == "FILL FOOD VIALS"){
               nextState = HOMING;
-              prog_DispenseFoodToVialsPos(savedPrograms,12);
+              prog_DispenseFoodToVialsPos(savedPrograms,18);
            }
            else{ //Load the selected File 
                nextState = LOAD_PROGRAM;
