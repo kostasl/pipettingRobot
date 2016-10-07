@@ -46,6 +46,8 @@
   04/10/16 Added 2 stage Homing (z 1st, then XYP), added menu scroll for loading and adding new program, changed to JoyButton for select
   05/10/16 Fixed Scrolling, But problem of freezing remains - I removed dynamic memory allocation and created a global buffer on the heap of MAX_POSITIONS - to Stop Freezing which was prob caused by mem fragmentation- 
            -Fixed Prog Relisting After running prog by rewinding Directory.
+  06/10/16 Made Demo Program, fixed issue with execution freezing - It was due DistanceToGo innacuracy of hitting 0 target, making a catchment area solved the issue
+  07/10/16 Making of Big Pipette Demo 
 */
 
 #include <AccelStepper.h>

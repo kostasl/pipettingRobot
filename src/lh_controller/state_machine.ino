@@ -258,7 +258,7 @@ void handleStartStateEvents()
       case HOMING: //DO Partial Z and P axis First, Then Follow up with XY
         setMotorSpeeds(); //replaced Reset with Just Setting Motors
 
-        stepperZ.moveTo(-14000);
+        stepperZ.moveTo(-16000);
         stepperP.moveTo(6000); //It will hit Limit Switch So Distance Doesnt matter
 
         stateTimeOut =  millis()+85000; //With timeout
