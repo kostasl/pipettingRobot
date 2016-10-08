@@ -124,9 +124,12 @@ void handleStopStateEvents()
               nextState = TEST_RUN; //Do it again
            }else{ /////////////Choose Next Sequence OR End Program //////////////////////
               prog_clearPoslist(savedPrograms); //prog->posCount = 0; Reset The pos Counter And Overwrite The  existing Positions
+              Serial.println("Seq Ended. Check Reps remain.");
               if (savedPrograms[0].repsRemain){ //Check if Program Has  multiSteps repeating routines (Fill a vial sequence) , And Get the next one 
                   savedPrograms[0].repsRemain--;              
-                  getNextFillVialPosSequence(savedPrograms,savedPrograms[0].totalReps - savedPrograms[0].repsRemain); 
+                  savedPrograms[0].epiPos = getNextFillVialPosSequence(savedPrograms,savedPrograms[0].totalReps - savedPrograms[0].repsRemain); 
+                  savedPrograms[0].protoPos = savedPrograms[0].epiPos; //Set As start of Prog Sequence
+
                   nextState = TEST_RUN;
               }else{
                   sprintf(buff,("End Prog i: %d "), savedPrograms[0].telosPos->seqID);
@@ -289,7 +292,7 @@ void handleStartStateEvents()
        stepperY.setCurrentPosition(0);
        stepperZ.setCurrentPosition(0);
        stepperP.setCurrentPosition(0);
-
+       setMotorHomeSpeeds();
        stepperX.runToNewPosition(50);
        stepperY.runToNewPosition(50);
        stepperZ.runToNewPosition(3500);

@@ -305,9 +305,9 @@ void resetVars()
 //Called When INit or After Homing
 void setMotorRunSpeeds()
 {
-  stepperX.setMaxSpeed(23000);
-  stepperY.setMaxSpeed(23000);
-  stepperZ.setMaxSpeed(10000);
+  stepperX.setMaxSpeed(25000);
+  stepperY.setMaxSpeed(25000);
+  stepperZ.setMaxSpeed(15000);
   stepperP.setMaxSpeed(2500);
 
   stepperX.setAcceleration(18000); 

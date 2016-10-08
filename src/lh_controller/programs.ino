@@ -102,14 +102,21 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
 {
   const uint16_t upZPos      = 4653;
   const uint16_t downZPos    = 25425;
-  const int      dispPPos    = -538; //Pip Pressed to Stage 1
+  const int      dispPPos    = -548; //Pip Pressed to Stage 1
   const int      deprPPos    = -2801; //Pip dePressed 
   const uint8_t  nVialsinRow =  6;
 
-  assert(currentIndex < prog->totalReps && currentIndex >= 0);
+  Serial.println(prog->totalReps);
+  Serial.print(F(" Reps. Make Next Vial Sequence v:"));
+  Serial.println(currentIndex);
+  Serial.println("Pos Count:");
+  Serial.print(prog->posCount);
+  
+  assert((currentIndex < prog->totalReps) && currentIndex >= 0);
 
   
-  prog_position* newpos;  
+  prog_position* newpos;
+  prog_position* firstpos;  
   ///Move OVER To Food
   //pos i: 2 X:827 Y:3245,Z:1,P:-2500 1 
   /// X:905 Y:3548,Z:1,P:-580 
@@ -124,6 +131,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
   
   prog->telosPos->epomPos = newpos;
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
+  firstpos                = newpos;
   prog->posCount++;
   
   
@@ -226,7 +234,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
   prog->posCount++;
 
   //showProgPos(newpos);
-  return newpos;
+  return firstpos;
 
 }
 
@@ -271,7 +279,7 @@ void prog_clearPoslist(t_program* prog)
       if (prog->protoPos == 0 || prog->posCount == 0 )
         return;
 
-      memset(prog->protoPos,0,sizeof(t_program)*MAX_POSITIONS);
+      memset(prog->protoPos,0,sizeof(prog_position)*MAX_POSITIONS);
       
 /*     ///Need to clear LIst of positions too
       prog_position* cpos    = prog->protoPos;
