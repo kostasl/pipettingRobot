@@ -68,6 +68,12 @@ void handleStopStateEvents()
           }else
             nextState = HOMING;
         }
+
+         //Interrupt Button/
+         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+          nextState = IDLE;
+         }
+
       break;
       
       case HOMING_XY:
@@ -76,6 +82,16 @@ void handleStopStateEvents()
           nextState = HOME;
         }else
           nextState = HOMING_XY;
+
+         //Interrupt Button/
+         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+          nextState = IDLE;
+         }
+
+         //Interrupt Button/
+         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+          nextState = IDLE;
+         }
                      
       break;
 
@@ -103,8 +119,8 @@ void handleStopStateEvents()
 
       case MOVING:
             nextState = MOVING;
-         distRemain = abs(stepperX.distanceToGo()) + abs(stepperY.distanceToGo()) + abs(stepperZ.distanceToGo())+ abs(stepperP.distanceToGo());
-         if (distRemain < 10)
+         distRemain = abs(stepperZ.distanceToGo())+ abs(stepperP.distanceToGo());
+         if (stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0 && distRemain < 8)
          {
             //displState();
           //Do not Exceed Last saved Position - Check If Next Is Null

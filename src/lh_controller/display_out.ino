@@ -168,6 +168,10 @@ void dispState()
      
         display.println(F("-Moving-"));
 
+
+        display.setFont();
+        display.setCursor(0,48);
+        display.println(F("C. button to Interrupt"));
         //display.startscrollright(0x00, 0x0F);
       break;
 

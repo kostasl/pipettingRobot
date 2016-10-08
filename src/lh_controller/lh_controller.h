@@ -52,7 +52,7 @@
 
 #define BTN_DEBOUNCE_TIMEMS 100 //DEbounce of LImit Switches in ms
 
-#define MAX_NUMBER_OF_FILES 20 //Define Size of filename holding array
+#define MAX_NUMBER_OF_FILES 25 //Define Size of filename holding array
 
 RBD::Button btn_YB_lim(PIN_SW_YB);
 RBD::Button btn_YF_lim(PIN_SW_YF);

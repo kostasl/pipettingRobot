@@ -29,11 +29,11 @@ assert(vialCount < MAX_POSITIONS/2);
 
 strcpy(prog->progname,"Fill_FdV");
 
-const uint16_t upZPos   = 4653;
-const uint16_t downZPos = 25425;
-const int      dispPPos = -538; //Pip Pressed to Stage 1
-const int      deprPPos = -2801; //Pip dePressed 
-
+const uint16_t upZPos      = 4653;
+const uint16_t downZPos    = 25425;
+const int      dispPPos    = -538; //Pip Pressed to Stage 1
+const int      deprPPos    = -2801; //Pip dePressed 
+const uint8_t  nVialsinRow =  6;
 prog_position* newpos;
 
 
@@ -62,10 +62,7 @@ prog_position* newpos;
 //Big pip take tip pos i: 4 X:4918 Y:4160,Z:29902,P:-2801 pos i: 3 X:4945 Y:4202,Z:29688,P:-2470 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Xpos          = 4945; //Press  
-  newpos->Ypos          = 4202; //Press  
-  newpos->Zpos          = 29688; //Press  
-  newpos->Ppos          = -2800; //Press  
+  newpos->Zpos          = 29700; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -74,14 +71,10 @@ prog_position* newpos;
   prog->posCount++;
 
 
-
 //Move Up With TIP
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Xpos          = 4918; //Press  
-  newpos->Ypos          = 4160; //Press  
   newpos->Zpos          = 1600; //Press  
-  newpos->Ppos          = -2800; //DePress  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   
@@ -116,7 +109,7 @@ for (int i=0; i<vialCount;i++)
   *newpos               = *(prog->telosPos); //Copy Data Over
   newpos->Xpos          = 830; //Press  
   newpos->Ypos          = 3371; //Press  
-  newpos->Zpos          = 9340; //Press  
+  newpos->Zpos          = 10200; //Press  
   newpos->Ppos          = dispPPos; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
@@ -130,9 +123,6 @@ for (int i=0; i<vialCount;i++)
   //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Xpos          = 830; //Press  
-  newpos->Ypos          = 3371; //Press  
-  newpos->Zpos          = 9340; //Press  
   newpos->Ppos          = deprPPos; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
@@ -162,8 +152,8 @@ for (int i=0; i<vialCount;i++)
 ///Distance Betwee Vials Apos i: 4 X:4038 Y:5142,Z:10608,P:-2470   B pos i: 5 X:4071 Y:5630,Z:10608,P:-2470 ~ DY :490
 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
-  newpos->Xpos          = 4039 - 490*(i/6);
-  newpos->Ypos          = 5146 + 490*(i%6);
+  newpos->Xpos          = 4039 - 465*(i/nVialsinRow);
+  newpos->Ypos          = 5143 + 498*(i%nVialsinRow);
   newpos->Zpos          = upZPos;
   newpos->Ppos          = deprPPos;
   newpos->seqID         = prog->posCount;
@@ -173,7 +163,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
-  showProgPos(newpos);
+  //showProgPos(newpos);
 
  //Move DOWN Vial
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);;
@@ -187,7 +177,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
-  showProgPos(newpos);
+  //showProgPos(newpos);
 
   ////Press Pipette 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);;
@@ -201,7 +191,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
-  showProgPos(newpos);
+  //showProgPos(newpos);
 
   ////MOVE UP VIAL  
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
@@ -215,7 +205,7 @@ for (int i=0; i<vialCount;i++)
 
   prog->posCount++;
 
-  showProgPos(newpos);
+  //showProgPos(newpos);
 
   
   Serial.print(F("Added Vial: "));

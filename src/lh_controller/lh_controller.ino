@@ -306,7 +306,7 @@ void setMotorSpeeds()
 
   stepperX.setAcceleration(1800); 
   stepperY.setAcceleration(1800);   
-  stepperZ.setAcceleration(4500);   
+  stepperZ.setAcceleration(5500);   
   stepperP.setAcceleration(1500);
 
 }

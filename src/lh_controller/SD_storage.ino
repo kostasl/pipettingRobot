@@ -3,7 +3,7 @@
 
  This example shows how print out the files in a
  directory on a SD card
-
+l
  The circuit:
  * SD card attached to SPI bus as follows:
  ** MOSI - pin 11
@@ -205,7 +205,7 @@ int loadProgramFileNames()
   
   n=2; //Count for fixed entries above
   
-  while (n < (MAX_NUMBER_OF_FILES)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
+  while (n < (MAX_NUMBER_OF_FILES-1)) { //Stop When Enough Files have beeen displayed or No more files available in root directory
 
     File entry =  dir.openNextFile();
     if (!entry) {
