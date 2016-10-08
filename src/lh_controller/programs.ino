@@ -100,10 +100,10 @@ prog->repsRemain = vialCount; //This number is dercremented after each Vial
 //This function generates a sequence from Food to Fill Vial and Out Of Vial
 prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
 {
-  const uint16_t upZPos      = 4653;
+  const uint16_t upZPos      = 4400;
   const uint16_t downZPos    = 25425;
   const int      dispPPos    = -548; //Pip Pressed to Stage 1
-  const int      deprPPos    = -2801; //Pip dePressed 
+  const int      deprPPos    = LIM_PIPETTE_UPTIX+1; //Pip dePressed 
   const uint8_t  nVialsinRow =  6;
 
   Serial.println(prog->totalReps);
@@ -180,7 +180,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
 ///Distance Betwee Vials Apos i: 4 X:4038 Y:5142,Z:10608,P:-2470   B pos i: 5 X:4071 Y:5630,Z:10608,P:-2470 ~ DY :490
 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
-  newpos->Xpos          = 4026 - 440*(currentIndex/nVialsinRow);
+  newpos->Xpos          = 4026 - 435*(currentIndex/nVialsinRow);
   newpos->Ypos          = 5180 + 510*(currentIndex%nVialsinRow);
   newpos->Zpos          = upZPos;
   newpos->Ppos          = deprPPos;
@@ -224,7 +224,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
   ////MOVE UP VIAL  
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Zpos          = upZPos; //Press  
+  newpos->Zpos          = upZPos; //  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
   

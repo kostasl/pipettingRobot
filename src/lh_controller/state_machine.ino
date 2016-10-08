@@ -268,7 +268,7 @@ void handleStartStateEvents()
        setMotorHomeSpeeds();
 
         stepperZ.moveTo(-16000);
-        stepperP.moveTo(6000); //It will hit Limit Switch So Distance Doesnt matter
+        stepperP.moveTo(8000); //It will hit Limit Switch So Distance Doesnt matter
 
         stateTimeOut =  millis()+85000; //With timeout
         systemState = HOMING;
