@@ -245,7 +245,7 @@ else
 //Do multiple Calls Accelerates Movement, Jumping over the loop timing constraint
   
 //Call Multiple Steps in loop to increase Speed (Each call executes 1 motor step maximum
-for (int i=0; i<22;i++ )
+for (int i=0; i<25;i++ )
 {
     stepperX.run();  
     stepperY.run();    
@@ -303,19 +303,34 @@ void resetVars()
 }
 
 //Called When INit or After Homing
-void setMotorSpeeds()
+void setMotorRunSpeeds()
 {
   stepperX.setMaxSpeed(23000);
   stepperY.setMaxSpeed(23000);
   stepperZ.setMaxSpeed(10000);
   stepperP.setMaxSpeed(2500);
 
-  stepperX.setAcceleration(10000); 
-  stepperY.setAcceleration(10000);   
-  stepperZ.setAcceleration(8500);   
+  stepperX.setAcceleration(18000); 
+  stepperY.setAcceleration(18000);   
+  stepperZ.setAcceleration(9500);   
   stepperP.setAcceleration(1500);
 
 }
+
+void setMotorHomeSpeeds()
+{
+  stepperX.setMaxSpeed(7000);
+  stepperY.setMaxSpeed(7000);
+  stepperZ.setMaxSpeed(10000);
+  stepperP.setMaxSpeed(2500);
+
+  stepperX.setAcceleration(5000); 
+  stepperY.setAcceleration(5000);   
+  stepperZ.setAcceleration(9500);   
+  stepperP.setAcceleration(1500);
+
+}
+
 
 // handle diagnostic informations given by assertion and abort program execution:
 void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp) {

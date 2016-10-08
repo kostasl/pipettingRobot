@@ -120,35 +120,29 @@ void handleStopStateEvents()
          {
             //displState();
           //Do not Exceed Last saved Position - Check If Next Is Null
-           if (savedPrograms[0].epiPos)
-           { 
-              //iposCurrentIndex++;
-             
+           if (savedPrograms[0].epiPos){              
               nextState = TEST_RUN; //Do it again
-          }else
-          { 
-            
-            sprintf(buff,("End Prog i: %d "), savedPrograms[0].telosPos->seqID);
-            Serial.println(buff);
-            //DOne the sequence 
-            //Reset Program To Beginning 
-            //savedPrograms[0].epiPos = savedPrograms[0].protoPos;
-            savedPrograms[0].posCount = 1; //Stop From Running Again
-            
-            //- Go Back HOME after and reset to Unload Program
-            //resetVars();
-            nextState = HOMING;
-            ///iposCurrentIndex = 0;
-          }
+           }else{ /////////////Choose Next Sequence OR End Program //////////////////////
+              prog_clearPoslist(savedPrograms); //prog->posCount = 0; Reset The pos Counter And Overwrite The  existing Positions
+              if (savedPrograms[0].repsRemain){ //Check if Program Has  multiSteps repeating routines (Fill a vial sequence) , And Get the next one 
+                  savedPrograms[0].repsRemain--;              
+                  getNextFillVialPosSequence(savedPrograms,savedPrograms[0].totalReps - savedPrograms[0].repsRemain); 
+                  nextState = TEST_RUN;
+              }else{
+                  sprintf(buff,("End Prog i: %d "), savedPrograms[0].telosPos->seqID);
+                  Serial.println(buff);
+                  //DOne the sequence  //Reset Program To Beginning
+                  savedPrograms[0].posCount = 1; //Stop From Running Again
+                  //- Go Back HOME after and reset to Unload Program    //resetVars();
+                  nextState = HOMING;
+               }
          }
 
             //Interrupt Button/
-         if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
-          nextState = IDLE;
-         }
-
-
-     
+           if (stateSW_BT3 == 1){ //Click So as to Replay saved POsitions
+            nextState = IDLE;
+           }
+         } //IF Reached Position
       break;
       
       case JOYSTICK:
@@ -267,7 +261,8 @@ void handleStartStateEvents()
       break;
       
       case HOMING: //DO Partial Z and P axis First, Then Follow up with XY
-        setMotorSpeeds(); //replaced Reset with Just Setting Motors
+//        setMotorSpeeds(); //replaced Reset with Just Setting Motors
+       setMotorHomeSpeeds();
 
         stepperZ.moveTo(-16000);
         stepperP.moveTo(6000); //It will hit Limit Switch So Distance Doesnt matter
@@ -277,12 +272,13 @@ void handleStartStateEvents()
       break;
 
       case HOMING_XY: //Used so Z axis Is lifted 1st before the others such that we avoid homing while in a vial
-        setMotorSpeeds(); //replaced Reset with Just Setting Motors
-        stepperZ.moveTo(-35000);
-        stepperX.moveTo(-26000); 
-        stepperY.moveTo(-26000);
-
-        stateTimeOut =  millis()+85000; //With timeout
+        //setMotorSpeeds(); //replaced Reset with Just Setting Motors
+       setMotorHomeSpeeds();
+       stepperZ.moveTo(-35000);
+       stepperX.moveTo(-26000); 
+       stepperY.moveTo(-26000);
+  
+       stateTimeOut =  millis()+85000; //With timeout
         
         systemState = HOMING_XY;
       break;
@@ -308,7 +304,7 @@ void handleStartStateEvents()
 
       case TEST_RUN:
       {
-        setMotorSpeeds(); //replaced Reset with Just Setting Motors
+        setMotorRunSpeeds(); //replaced Reset with Just Setting Motors
 
         prog_position* nxtpos;
         nxtpos = savedPrograms[0].epiPos;
@@ -326,19 +322,10 @@ void handleStartStateEvents()
         if (nxtpos->seqID < savedPrograms[0].posCount)
         {
           savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
-        }else
-        {
-          if (savedPrograms[0].repsRemain){ //Check if Program Has  multiSteps repeating routines (Fill a vial sequence) , And Get the next one 
-              savedPrograms[0].repsRemain--;
-              prog_clearPoslist(savedPrograms); //prog->posCount = 0; Reset The pos Counter And Overwrite The  existing Positions
-              getNextFillVialPosSequence(savedPrograms,savedPrograms[0].totalReps - savedPrograms[0].repsRemain); 
-              
-              }else{
-                  Serial.println(F("PROGRAM END"));
-                   savedPrograms[0].epiPos = 0; //Set To Null
-              }
-        } //Is this Sequence Over?
-
+        }else{
+            Serial.println(F("Seq. END"));
+            savedPrograms[0].epiPos = 0; //Set To Null
+        }
         stateTimeOut =  millis()  + 35000; //Give 30sec timeout until move executes
         systemState = TEST_RUN;
       }
