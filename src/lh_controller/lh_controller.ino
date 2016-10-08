@@ -202,13 +202,16 @@ if (nextState != systemState)
 {
     handleStartStateEvents();
     
-    stepperX.run();  
-    stepperY.run();    
-    stepperZ.run();
-    stepperZ.run();
-
     dispState();
-    display.display();
+    if (systemState == TEST_RUN && nextState == MOVING){
+      //Wait for It/Dont Slow Down Due to Display
+      stepperX.run();  
+      stepperY.run();    
+      stepperZ.run();
+      stepperZ.run();
+    }
+     else
+      display.display();
 }
 else
     //Add State Events Events In Following function
@@ -241,10 +244,12 @@ else
 //Do multiple Calls Accelerates Movement, Jumping over the loop timing constraint
   
 //Call Multiple Steps in loop to increase Speed (Each call executes 1 motor step maximum
-for (int i=0; i<25;i++ )
+for (int i=0; i<15;i++ )
 {
     stepperX.run();  
     stepperY.run();    
+    stepperZ.run();
+    stepperZ.run();
     stepperZ.run();
     stepperP.run();
 
@@ -301,8 +306,8 @@ void resetVars()
 //Called When INit or After Homing
 void setMotorRunSpeeds()
 {
-  stepperX.setMaxSpeed(25000);
-  stepperY.setMaxSpeed(25000);
+  stepperX.setMaxSpeed(17000);
+  stepperY.setMaxSpeed(17000);
   stepperZ.setMaxSpeed(15000);
   stepperP.setMaxSpeed(2500);
 

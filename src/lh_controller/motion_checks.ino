@@ -207,7 +207,7 @@ int checkOutOfRange()
         flag_P_lim=false; //Unflag
     }
     
-    if (stepperP.currentPosition() <= LIM_PIPETTE_UPTIX && flag_P_lim==false)
+    if ((stepperP.currentPosition() <= LIM_PIPETTE_UPTIX) && flag_P_lim==false)
     {     
           display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
           display.print(F("P LIM"));
