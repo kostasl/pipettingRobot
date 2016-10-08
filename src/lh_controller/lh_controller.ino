@@ -204,9 +204,15 @@ void loop() {
 
 if (nextState != systemState)
 {
-     handleStartStateEvents();
-     dispState();
-     display.display();
+    handleStartStateEvents();
+    
+    stepperX.run();  
+    stepperY.run();    
+    stepperZ.run();
+    stepperZ.run();
+
+    dispState();
+    display.display();
 }
 else
     //Add State Events Events In Following function
@@ -236,19 +242,19 @@ else
 
 
 ///RUN STEP -- Need to Be Able to Move after Homed! So SW should be ignored
+//Do multiple Calls Accelerates Movement, Jumping over the loop timing constraint
+  
+//Call Multiple Steps in loop to increase Speed (Each call executes 1 motor step maximum
+for (int i=0; i<22;i++ )
+{
     stepperX.run();  
-    stepperX.run();  
-
-    stepperY.run();
-    stepperY.run();
-
+    stepperY.run();    
     stepperZ.run();
-    stepperZ.run();
-    stepperZ.run();
-    stepperZ.run();
-    stepperZ.run();
-
     stepperP.run();
+
+    checkHoming();
+}
+
 
 ////-------------------////
 
@@ -299,14 +305,14 @@ void resetVars()
 //Called When INit or After Homing
 void setMotorSpeeds()
 {
-  stepperX.setMaxSpeed(3500);
-  stepperY.setMaxSpeed(3500);
-  stepperZ.setMaxSpeed(7000);
-  stepperP.setMaxSpeed(1500);
+  stepperX.setMaxSpeed(23000);
+  stepperY.setMaxSpeed(23000);
+  stepperZ.setMaxSpeed(10000);
+  stepperP.setMaxSpeed(2500);
 
-  stepperX.setAcceleration(1800); 
-  stepperY.setAcceleration(1800);   
-  stepperZ.setAcceleration(5500);   
+  stepperX.setAcceleration(10000); 
+  stepperY.setAcceleration(10000);   
+  stepperZ.setAcceleration(8500);   
   stepperP.setAcceleration(1500);
 
 }

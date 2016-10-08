@@ -25,17 +25,13 @@ Serial.println((int)prog->telosPos);
 assert(prog);
 assert(vialCount > 0);
 assert(prog->telosPos);
-assert(vialCount < MAX_POSITIONS/2);
+assert(MAX_POSITIONS > 12);
 
 strcpy(prog->progname,"Fill_FdV");
 
-const uint16_t upZPos      = 4653;
-const uint16_t downZPos    = 25425;
-const int      dispPPos    = -538; //Pip Pressed to Stage 1
-const int      deprPPos    = -2801; //Pip dePressed 
-const uint8_t  nVialsinRow =  6;
 prog_position* newpos;
-
+prog->totalReps = vialCount;
+prog->repsRemain = vialCount; //This number is dercremented after each Vial
 
 /////////Pickup Tip//////////// 
 //pos i: 1 X:4895 Y:4247,Z:-24976,P:-2500 
@@ -83,9 +79,37 @@ prog_position* newpos;
   prog->posCount++;
 
 
-for (int i=0; i<vialCount;i++)
-{
+//for (int i=0; i<vialCount;i++)
+//{
 
+  newpos = getNextFillVialPosSequence(prog,0);
+  
+  Serial.print(F("Added First Vial "));
+   
+  //Serial.print("telos MPos: ");
+  //Serial.println((int)prog->telosPos);
+
+
+//}//Loop For Each  Vial
+
+ //Done
+}
+
+
+///For Long Repetitive Process, Produce the Vial Sequence On Demand, to reduce the burden on memory
+//This function generates a sequence from Food to Fill Vial and Out Of Vial
+prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
+{
+  const uint16_t upZPos      = 4653;
+  const uint16_t downZPos    = 25425;
+  const int      dispPPos    = -538; //Pip Pressed to Stage 1
+  const int      deprPPos    = -2801; //Pip dePressed 
+  const uint8_t  nVialsinRow =  6;
+
+  assert(currentIndex < prog->totalReps && currentIndex >= 0);
+
+  
+  prog_position* newpos;  
   ///Move OVER To Food
   //pos i: 2 X:827 Y:3245,Z:1,P:-2500 1 
   /// X:905 Y:3548,Z:1,P:-580 
@@ -107,8 +131,6 @@ for (int i=0; i<vialCount;i++)
   //Big Tip X:830 Y:3371,Z:9340,P:-2500  
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Xpos          = 830; //Press  
-  newpos->Ypos          = 3371; //Press  
   newpos->Zpos          = 10200; //Press  
   newpos->Ppos          = dispPPos; //Press  
   newpos->seqID         = prog->posCount;
@@ -135,8 +157,6 @@ for (int i=0; i<vialCount;i++)
   //pos i: 2 X:1057 Y:3158,Z:9088,P:-2801 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Xpos          = 830; //Press  
-  newpos->Ypos          = 3371; //Press  
   newpos->Zpos          = 1; //All way Up  
   newpos->Ppos          = deprPPos; //Press  
   newpos->seqID         = prog->posCount;
@@ -152,8 +172,8 @@ for (int i=0; i<vialCount;i++)
 ///Distance Betwee Vials Apos i: 4 X:4038 Y:5142,Z:10608,P:-2470   B pos i: 5 X:4071 Y:5630,Z:10608,P:-2470 ~ DY :490
 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
-  newpos->Xpos          = 4039 - 465*(i/nVialsinRow);
-  newpos->Ypos          = 5143 + 498*(i%nVialsinRow);
+  newpos->Xpos          = 4026 - 440*(currentIndex/nVialsinRow);
+  newpos->Ypos          = 5180 + 510*(currentIndex%nVialsinRow);
   newpos->Zpos          = upZPos;
   newpos->Ppos          = deprPPos;
   newpos->seqID         = prog->posCount;
@@ -163,7 +183,7 @@ for (int i=0; i<vialCount;i++)
   prog->telosPos          = newpos; //Update That Last Pos Is this new pos         
 
   prog->posCount++;
-  //showProgPos(newpos);
+  showProgPos(newpos);
 
  //Move DOWN Vial
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);;
@@ -206,18 +226,8 @@ for (int i=0; i<vialCount;i++)
   prog->posCount++;
 
   //showProgPos(newpos);
+  return newpos;
 
-  
-  Serial.print(F("Added Vial: "));
-  Serial.println(i);
-   
-  //Serial.print("telos MPos: ");
-  //Serial.println((int)prog->telosPos);
-
-
-}//Loop For Each  Vial
-
- //Done
 }
 
 
@@ -262,7 +272,7 @@ void prog_clearPoslist(t_program* prog)
         return;
 
       memset(prog->protoPos,0,sizeof(t_program)*MAX_POSITIONS);
-
+      
 /*     ///Need to clear LIst of positions too
       prog_position* cpos    = prog->protoPos;
       prog_position* nxtpos  = 0;

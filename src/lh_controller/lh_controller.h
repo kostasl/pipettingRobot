@@ -74,7 +74,7 @@ bool flag_P_lim = false; //Flag holding state of Soft Limit Switch
 ///N/A The Green MISO Line Is unused -
 //ChipSelect >?
 
-#define MAX_POSITIONS 200
+#define MAX_POSITIONS 100 //Size Of Position Buffer
 #define MAX_PROGS 1
 
 // EG X-Y position bed driven by 2 steppers
@@ -98,6 +98,7 @@ typedef struct {
   uint16_t ID;
   uint16_t posCount; //Number of positions
   uint8_t repsRemain; //Defines remaining Number of repetitions during a run
+  uint8_t totalReps; //Total  Number of repetitions of a subroutine
   char progname[18]; //The program Name
   char timestamp[10]; //Last Mod Date
   list_position* protoPos;

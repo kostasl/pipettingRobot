@@ -24,12 +24,12 @@ void handleStopStateEvents()
          nextState = IDLE;
 
          if (btn_JR_lim.onPressed()){
-           if (selectedProgramFile == "NEW PROGRAM"){
+           if (selectedProgramFile == gstr_progfilenames[0]){
               nextState = JOYSTICK;
            }else
-           if (selectedProgramFile == "FILL FOOD VIALS"){
+           if (selectedProgramFile == gstr_progfilenames[1]){
               nextState = HOMING;
-              prog_DispenseFoodToVialsPos(savedPrograms,18);
+              prog_DispenseFoodToVialsPos(savedPrograms,6*12); //DISPENSE FOOD Program
            }
            else{ //Load the selected File 
                nextState = LOAD_PROGRAM;
@@ -48,7 +48,6 @@ void handleStopStateEvents()
          if ((posJRy < -LH_MIN_JOY_MOVE) && (gi_filelistSelectedIndex < (gi_numberOfProgFiles-1)))
          {
             gi_filelistSelectedIndex++;
-            //Serial.println(gi_filelistSelectedIndex);
             dispState();
             display.display();
          }
@@ -98,9 +97,6 @@ void handleStopStateEvents()
       
       case HOME: //3 //Reached Home - Stay Here Unclick Switches
             //If  a program has been loaded / Run It
-//           char buff[100];
-//           sprintf(buff,("Prog Opened  %s has n:%d"),savedPrograms[0]->progname,savedPrograms[0]->posCount);
-//           Serial.println(buff); 
             if (savedPrograms[0].posCount > 1)
             {
                 nextState = TEST_RUN;
@@ -161,8 +157,7 @@ void handleStopStateEvents()
         stepperX.setMaxSpeed(2*abs(posJRx));
         stepperZ.setMaxSpeed(2300);
         stepperP.setMaxSpeed(1500);
-        stepperZ.setAcceleration(2500);   
-
+        stepperZ.setAcceleration(3500);   
 
         
         if (abs(posJRy) > LH_MIN_JOY_MOVE)
@@ -332,12 +327,17 @@ void handleStartStateEvents()
         {
           savedPrograms[0].epiPos = nxtpos->epomPos; //Change pointer to next Pos
         }else
-        //If Moved to Last One, then Make Sure Next Pos Is null
-//        if (savedPrograms[0]->epiPos == savedPrograms[0]->telosPos)  
         {
-          Serial.println(F("PROGRAM END"));
-          savedPrograms[0].epiPos = 0; //Set To Null
-        }
+          if (savedPrograms[0].repsRemain){ //Check if Program Has  multiSteps repeating routines (Fill a vial sequence) , And Get the next one 
+              savedPrograms[0].repsRemain--;
+              prog_clearPoslist(savedPrograms); //prog->posCount = 0; Reset The pos Counter And Overwrite The  existing Positions
+              getNextFillVialPosSequence(savedPrograms,savedPrograms[0].totalReps - savedPrograms[0].repsRemain); 
+              
+              }else{
+                  Serial.println(F("PROGRAM END"));
+                   savedPrograms[0].epiPos = 0; //Set To Null
+              }
+        } //Is this Sequence Over?
 
         stateTimeOut =  millis()  + 35000; //Give 30sec timeout until move executes
         systemState = TEST_RUN;

@@ -200,7 +200,7 @@ int loadProgramFileNames()
   int n = 0; //Displayed File count
 
   gstr_progfilenames[0] = String(F("NEW PROGRAM"));
-  gstr_progfilenames[1] = String(F("FILL FOOD VIALS")); //Empty The next One, in case files are missing
+  gstr_progfilenames[1] = String(F("FILL FOOD VIALS 6x12")); //Empty The next One, in case files are missing
   gstr_progfilenames[2] = String(""); //Empty The next One, in case files are missing
   
   n=2; //Count for fixed entries above
