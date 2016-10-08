@@ -252,7 +252,7 @@ for (int i=0; i<15;i++ )
     stepperZ.run();
     stepperZ.run();
     stepperP.run();
-
+    stepperP.run();
     checkHoming();
 }
 
@@ -278,8 +278,13 @@ for (int i=0; i<15;i++ )
        
     if (stepperX.distanceToGo()==0 && stepperY.distanceToGo()==0 && stepperZ.distanceToGo()==0 && stepperP.distanceToGo()==0) //Display Updates disrupt the  Motion
     {
-      dispState();
-      display.display(); //Update display from Buffer
+     if (!(systemState == TEST_RUN && nextState == MOVING)){
+      {
+        
+      }
+        //dispState();
+        //display.display(); //Update display from Buffer
+      }
     }
   }
 

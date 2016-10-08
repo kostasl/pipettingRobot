@@ -211,7 +211,7 @@ int checkOutOfRange()
     {     
           display.setCursor(disp_LIM_SPACING*3,disp_LOW_LINE);
           display.print(F("P LIM"));
-          display.display();
+          //display.display();
           
           flag_P_lim = true;
           

@@ -82,7 +82,8 @@ prog->repsRemain = vialCount; //This number is dercremented after each Vial
 //for (int i=0; i<vialCount;i++)
 //{
 
-  newpos = getNextFillVialPosSequence(prog,6);
+//Start From 1 Vial
+  newpos = getNextFillVialPosSequence(prog,0);
   
   Serial.print(F("Added First Vial "));
    
@@ -104,7 +105,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
   const uint16_t downZPos    = 25425;
   const int      dispPPos    = -548; //Pip Pressed to Stage 1
   const int      deprPPos    = LIM_PIPETTE_UPTIX+5; //Pip dePressed 
-  const uint8_t  nVialsinRow =  1;
+  const uint8_t  nVialsinRow =  6;
 
   Serial.println(prog->totalReps);
   Serial.print(F(" Reps. Make Next Vial Sequence v:"));
@@ -139,7 +140,7 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
   //Big Tip X:830 Y:3371,Z:9340,P:-2500  
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
   *newpos               = *(prog->telosPos); //Copy Data Over
-  newpos->Zpos          = 10500; //=  
+  newpos->Zpos          = 11400; //=  
   newpos->Ppos          = dispPPos; //Press  
   newpos->seqID         = prog->posCount;
   newpos->epomPos       = 0; //IMportant to set this to 0 So clear end of list 
@@ -180,9 +181,9 @@ prog_position* getNextFillVialPosSequence(t_program* prog,int currentIndex)
 ///Distance Betwee Vials Apos i: 4 X:4038 Y:5142,Z:10608,P:-2470   B pos i: 5 X:4071 Y:5630,Z:10608,P:-2470 ~ DY :490
 
   newpos = &gposbuffer[prog->posCount];//prog->telosPos+sizeof(prog_position);
-  newpos->Xpos          = 4028 - 419*(currentIndex/nVialsinRow);
-  newpos->Ypos          = 5180 + 509*(currentIndex%nVialsinRow);
-  newpos->Zpos          = upZPos;
+  newpos->Xpos          = 5847 - 414*(currentIndex/nVialsinRow);
+  newpos->Ypos          = 5157 + 509*(currentIndex%nVialsinRow);
+  newpos->Zpos          = upZPos; 
   newpos->Ppos          = deprPPos;
   newpos->seqID         = prog->posCount;
   newpos->epomPos        = 0; //IMportant to set this to 0 So clear end of list 
